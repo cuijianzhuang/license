@@ -88,9 +88,23 @@ To contribute to this project:
 3. Make your changes
 4. Submit a pull request
 
-## License
+## Disclaimer
 
-This project is proprietary software. All rights reserved. 
+### Project Purpose
+
+This project has been developed and shared solely for educational purposes, aiming to provide opportunities for technical research and academic learning. The technologies and methods discussed in this project are intended only for learning and research purposes.
+
+### Usage Restrictions
+
+The author of this project has published it not to encourage software piracy or any form of illegal activity, but rather to promote knowledge sharing and technological advancement. **It is strictly prohibited to use this project to crack, activate, or illegally use software in any way**. Users must comply with all applicable local and international laws and regulations when using this project.
+
+### Commercial Use Prohibition
+
+This project is **strictly prohibited for commercial use** or any form of profit-making activity. No part of the project may be used in any context that might directly or indirectly generate economic benefits.
+
+### Disclaimer of Liability
+
+This project is provided "as is" without any warranties, expressed or implied. The project author does not assume any responsibility for any form of damage or legal consequences that may result from the use of this project content. By using this project, you understand and agree to these terms, and you will assume all risks associated with using this project.
 
 ## Star History
 
