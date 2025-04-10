@@ -1,6 +1,6 @@
 .git
 .idea
-.env
+*.env
 .gitattributes
 .gitignore
 build.sh

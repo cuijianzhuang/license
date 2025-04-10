@@ -1,8 +1,8 @@
 package config
 
 import (
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"license/jetbrain/code/entity"
 	"license/logger"

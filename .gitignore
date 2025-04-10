@@ -22,7 +22,6 @@
 go.work
 .idea/
 *.iml
-.env
 *.key
 *.pem
 *.crt
@@ -30,3 +29,5 @@ go.work
 *.pri
 *.db
 *.log
+
+*.env

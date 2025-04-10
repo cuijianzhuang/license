@@ -42,6 +42,7 @@ jobs:
       should_create_release: ${{ steps.check.outputs.should_create_release }}
       should_sync_to_public: ${{ steps.check.outputs.should_sync_to_public }}
       version: ${{ steps.get_version.outputs.version }}
+      docker_version: ${{ steps.get_version.outputs.docker_version }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -98,8 +99,13 @@ jobs:
           else
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
           fi
+          
+          # 提取不带v前缀的版本号用于Docker镜像标签
+          DOCKER_VERSION=$(echo "$VERSION" | sed 's/^v//')
+          
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
+          echo "docker_version=$DOCKER_VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION (Docker version: $DOCKER_VERSION)"
 
   # 1. 测试阶段
   test:
@@ -146,39 +152,39 @@ jobs:
         run: |
           mkdir -p build
           
-          # 安装编译所需的依赖
-          sudo apt-get update
-          sudo apt-get install -y gcc libsqlite3-dev musl-dev
+          # 现在使用纯Go实现的SQLite，可以禁用CGO简化构建
           
-          # Linux amd64 (使用CGO构建，支持SQLite)
+          # Linux amd64
           echo "Building for Linux AMD64..."
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X main.Version=${{ needs.pre_check.outputs.version }}" -o build/license-linux-amd64 ./main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X main.Version=${{ needs.pre_check.outputs.version }}" -o build/license-linux-amd64 ./main.go
           
-          # 注意：ARM64 暂时使用CGO_ENABLED=0构建，在Docker镜像中提供SQLite依赖
-          # 交叉编译CGO应用需要更复杂的设置
+          # Linux arm64
           echo "Building for Linux ARM64..."
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w -X main.Version=${{ needs.pre_check.outputs.version }}" -o build/license-linux-arm64 ./main.go
           
-          # MacOS amd64 (注意: 交叉编译可能需要特殊处理)
+          # MacOS amd64
           echo "Building for MacOS AMD64..."
           CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w -X main.Version=${{ needs.pre_check.outputs.version }}" -o build/license-darwin-amd64 ./main.go
           
-          # MacOS arm64 (注意: 交叉编译可能需要特殊处理)
+          # MacOS arm64
           echo "Building for MacOS ARM64..."
           CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X main.Version=${{ needs.pre_check.outputs.version }}" -o build/license-darwin-arm64 ./main.go
           
-          # Windows amd64 (注意: 交叉编译可能需要特殊处理)
+          # Windows amd64
           echo "Building for Windows AMD64..."
           CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -X main.Version=${{ needs.pre_check.outputs.version }}" -o build/license-windows-amd64.exe ./main.go
           
-          # List all built files
+          # 检查编译的二进制文件
+          echo "Built binaries:"
           ls -la build/
+          file build/*
 
+      # 上传构建的Linux二进制文件
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: binaries
-          path: build/
+          path: build/license-linux-*
 
   # 3. 构建Docker镜像（只在tag或手动触发时运行）
   docker:
@@ -205,31 +211,45 @@ jobs:
           # 创建构建上下文目录
           mkdir -p docker-context
           
-          # 复制二进制文件
-          mkdir -p docker-context/bin
-          cp build/license-linux-amd64 docker-context/bin/
-          cp build/license-linux-arm64 docker-context/bin/
+          # 检查下载的二进制文件
+          echo "Downloaded binaries:"
+          ls -la build/
           
-          # 创建智能Dockerfile，自动根据平台选择二进制文件
+          # 将二进制文件重命名为更简单的形式（删除linux-前缀）
+          mkdir -p docker-context/bin
+          cp build/license-linux-amd64 docker-context/bin/license-amd64
+          cp build/license-linux-arm64 docker-context/bin/license-arm64
+          
+          # 检查复制后的二进制文件
+          echo "Copied binaries:"
+          ls -la docker-context/bin/
+          
+          # 创建Dockerfile，避免使用TARGETARCH变量
           cat > docker-context/Dockerfile << EOF
           FROM alpine:latest
           
-          ARG VERSION=${{ needs.pre_check.outputs.version }}
+          ARG VERSION=${{ needs.pre_check.outputs.docker_version }}
           ARG TARGETARCH
           
           WORKDIR /app
           
-          # 复制对应架构的预编译二进制文件
-          COPY bin/license-linux-\${TARGETARCH} /app/license
+          # 调试: 打印目标架构
+          RUN echo "Building for architecture: \${TARGETARCH}"
           
-          # 安装需要的依赖
+          # 复制对应架构的预编译二进制文件
+          COPY bin/license-\${TARGETARCH} /app/license
+          
+          # 基本依赖，不再需要SQLite
           RUN chmod +x /app/license && \\
               apk update && \\
               apk upgrade && \\
-              apk add --no-cache ca-certificates tzdata sqlite sqlite-dev && \\
+              apk add --no-cache ca-certificates tzdata && \\
               update-ca-certificates 2>/dev/null || true && \\
               mkdir -p /data
           
+          # 验证二进制文件
+          RUN ls -la /app && file /app/license && chmod +x /app/license
+              
           ENTRYPOINT ["/app/license"]
           EOF
 
@@ -253,11 +273,11 @@ jobs:
           context: docker-context
           push: true
           tags: |
-            ${{ secrets.HUB_USER }}/${{ secrets.HUB_REPO }}:${{ needs.pre_check.outputs.version }}
+            ${{ secrets.HUB_USER }}/${{ secrets.HUB_REPO }}:${{ needs.pre_check.outputs.docker_version }}
             ${{ secrets.HUB_USER }}/${{ secrets.HUB_REPO }}:latest
           platforms: linux/amd64,linux/arm64
           build-args: |
-            VERSION=${{ needs.pre_check.outputs.version }}
+            VERSION=${{ needs.pre_check.outputs.docker_version }}
 
   # 4. 发布Release（只在tag推送时运行或手动指定创建release时运行）
   release:
