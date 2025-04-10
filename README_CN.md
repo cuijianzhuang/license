@@ -69,6 +69,22 @@
 - `DB_TYPE`：数据库类型(mysql或sqlite)
 - `DB_DSN`：数据库连接字符串
 
+## GitHub Actions配置
+
+本项目包含GitHub Actions工作流，用于自动构建、测试和发布。要使用这些工作流，您需要配置以下仓库密钥：
+
+- `HUB_USER`：您的Docker Hub用户名
+- `HUB_PASS`：您的Docker Hub密码
+- `HUB_REPO`：Docker Hub仓库名称
+- `PUBLIC_REPO_TOKEN`：（可选）具有对公共仓库写入权限的个人访问令牌
+- `PUBLIC_REPO`：（可选）公共仓库路径，格式为`用户名/仓库名`
+
+工作流包括：
+- 每次推送时进行构建和测试
+- 在标签推送或手动触发时构建和发布Docker镜像
+- 创建GitHub发布版本
+- 将发布同步到公共仓库（仅在手动触发时执行，需要配置`PUBLIC_REPO_TOKEN`和`PUBLIC_REPO`）
+
 ## API接口
 
 该服务提供多个许可证管理相关的API接口：

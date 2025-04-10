@@ -69,6 +69,22 @@ Configuration is handled through environment variables and the `.env` file:
 - `DB_TYPE`: Database type (mysql or sqlite)
 - `DB_DSN`: Database connection string
 
+## GitHub Actions Configuration
+
+This project includes GitHub Actions workflows for automated building, testing, and releasing. To use these workflows, you need to configure the following repository secrets:
+
+- `HUB_USER`: Your Docker Hub username
+- `HUB_PASS`: Your Docker Hub password
+- `HUB_REPO`: Docker Hub repository name
+- `PUBLIC_REPO_TOKEN`: (Optional) Personal access token with write permissions to the public repository
+- `PUBLIC_REPO`: (Optional) Public repository path in the format `username/repo`
+
+The workflows include:
+- Building and testing on each push
+- Docker image building and publishing on tags or manual triggers
+- Creating GitHub releases
+- Synchronizing releases to a public repository (only for manual triggers, requires `PUBLIC_REPO_TOKEN` and `PUBLIC_REPO`)
+
 ## API Endpoints
 
 The API provides various endpoints for license management:
