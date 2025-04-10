@@ -153,7 +153,7 @@ func (s *PluginServiceImpl) fetchPlugins(url string) ([]*entity.PluginEntity, er
 		logger.Info(fmt.Sprintf("待处理插件总数:%d,当前正在处理第:%d个,插件Id:%d", len(data.Plugins), index+1, p.ID))
 		detailResp, err := client.Get(fmt.Sprintf("%s%d", pluginDetailURL, p.ID))
 		if err != nil {
-			logger.Error(fmt.Sprintf("Error fetching plugin detail for ID %d: %v", p.ID), err)
+			logger.Error(fmt.Sprintf("Error fetching plugin detail for ID %d", p.ID), err)
 			continue
 		}
 		defer detailResp.Body.Close()
