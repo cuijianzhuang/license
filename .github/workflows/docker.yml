@@ -351,9 +351,9 @@ jobs:
       - name: Sync Release to Public Repository
         if: needs.pre_check.outputs.should_sync_to_public == 'true'
         env:
-          # 如果目标仓库在同一个组织或用户下，可以使用github.token
-          # 如果需要访问其他组织/用户的仓库，则需要使用PAT (Personal Access Token)
-          GH_TOKEN: ${{ github.token }}
+          # 必须使用有权限访问目标仓库的个人访问令牌(PAT)
+          # github.token无法访问其他仓库，即使在同一组织内
+          GH_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
           RELEASE_TAG: ${{ needs.pre_check.outputs.version }}
           BUILD_DIR: ${{ github.workspace }}/build
           BODY_FILE: ${{ github.workspace }}/release_body.md
