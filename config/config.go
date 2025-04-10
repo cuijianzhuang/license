@@ -25,6 +25,7 @@ var globalConfig *Config
 func InitConfig() {
 	if globalConfig != nil {
 		logger.Info("Config is already initialized")
+		return
 	}
 	// 加载.env文件
 	err := godotenv.Load()
