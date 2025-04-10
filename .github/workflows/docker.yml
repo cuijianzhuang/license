@@ -247,8 +247,8 @@ jobs:
               update-ca-certificates 2>/dev/null || true && \\
               mkdir -p /data
           
-          # 验证二进制文件
-          RUN ls -la /app && file /app/license && chmod +x /app/license
+          # 验证二进制文件（不使用file命令）
+          RUN ls -la /app && chmod +x /app/license
               
           ENTRYPOINT ["/app/license"]
           EOF
