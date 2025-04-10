@@ -360,9 +360,9 @@ jobs:
           replacesArtifacts: true
           bodyFile: release_body.md
           
-      # 同步发布到公开仓库
+      # 同步发布到公开仓库，只在手动触发时执行，不在tag推送时执行
       - name: Sync Release to Public Repository
-        if: needs.pre_check.outputs.should_sync_to_public == 'true'
+        if: needs.pre_check.outputs.should_sync_to_public == 'true' && !startsWith(github.ref, 'refs/tags/')
         env:
           # 必须使用有权限访问目标仓库的个人访问令牌(PAT)
           # github.token无法访问其他仓库，即使在同一组织内
