@@ -31,3 +31,4 @@ go.work
 *.log
 
 *.env
+!.env.example
