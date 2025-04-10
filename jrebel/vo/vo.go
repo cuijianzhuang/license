@@ -30,6 +30,9 @@ type LeasesOneHandlerVO struct {
 	ServerGuid            string `json:"serverGuid"`
 	GroupType             string `json:"groupType"`
 	StatusCode            string `json:"statusCode"`
+	Signature             string `json:"signature"`
+	ServerRandomness      string `json:"serverRandomness"`
+	Features              string `json:"features"`
 	Msg                   string `json:"msg"`
 	StatusMessage         string `json:"statusMessage"`
 	Company               string `json:"company"`
@@ -42,6 +45,9 @@ type ValidateHandlerVO struct {
 	ServerGuid            string `json:"serverGuid"`
 	GroupType             string `json:"groupType"`
 	StatusCode            string `json:"statusCode"`
+	Signature             string `json:"signature"`
+	ServerRandomness      string `json:"serverRandomness"`
+	Features              string `json:"features"`
 	Company               string `json:"company"`
 	CanGetLease           bool   `json:"canGetLease"`
 	LicenseType           string `json:"licenseType"`

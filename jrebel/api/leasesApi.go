@@ -98,7 +98,7 @@ func (controller *LeasesController) LeasesHandler(c *gin.Context) {
 		OrderId:               uuid.NewString(),
 		ZeroIds:               make([]string, 0),
 		LicenseValidFrom:      1490544001000,
-		LicenseValidUntil:     1691839999000,
+		LicenseValidUntil:     4102415999000,
 	}
 
 	c.JSON(http.StatusOK, leasesHandlerVO)
@@ -108,10 +108,28 @@ func (controller *LeasesController) LeasesHandler(c *gin.Context) {
 func (controller *LeasesController) Leases1Handler(c *gin.Context) {
 	username := c.DefaultQuery("username", "")
 
+	clientRandomness := c.PostForm("randomness")
+	guid := c.PostForm("guid")
+	offline, _ := strconv.ParseBool(c.PostForm("offline"))
+	clientTime, _ := strconv.ParseInt(c.PostForm("clientTime"), 10, 64)
+
+	var validFrom, validUntil int64
+	if offline {
+		// 计算180天后的时间，注意这里是以毫秒为单位
+		expiration := clientTime + 180*24*60*60*1000
+		validFrom = clientTime
+		validUntil = expiration
+	}
+
+	signature := sign(clientRandomness, guid, offline, validFrom, validUntil)
+
 	leasesOneHandlerVO := vo.LeasesOneHandlerVO{
 		ServerVersion:         constant.SERVER_VERSION,
 		ServerProtocolVersion: constant.SERVER_PROTOCOL_VERSION,
 		ServerGuid:            constant.SERVER_GUID,
+		Signature:             signature,
+		ServerRandomness:      constant.SERVER_RANDOMNESS,
+		Features:              "{}",
 		GroupType:             constant.GROUP_TYPE,
 		StatusCode:            constant.STATUS_CODE,
 		Company:               username,
@@ -124,10 +142,29 @@ func (controller *LeasesController) Leases1Handler(c *gin.Context) {
 
 // ValidateHandler handles the "/validate-connection" endpoint.
 func (controller *LeasesController) ValidateHandler(c *gin.Context) {
+
+	clientRandomness := c.PostForm("randomness")
+	guid := c.PostForm("guid")
+	offline, _ := strconv.ParseBool(c.PostForm("offline"))
+	clientTime, _ := strconv.ParseInt(c.PostForm("clientTime"), 10, 64)
+
+	var validFrom, validUntil int64
+	if offline {
+		// 计算180天后的时间，注意这里是以毫秒为单位
+		expiration := clientTime + 180*24*60*60*1000
+		validFrom = clientTime
+		validUntil = expiration
+	}
+
+	signature := sign(clientRandomness, guid, offline, validFrom, validUntil)
+
 	validateHandlerVO := vo.ValidateHandlerVO{
 		ServerVersion:         constant.SERVER_VERSION,
 		ServerProtocolVersion: constant.SERVER_PROTOCOL_VERSION,
 		ServerGuid:            constant.SERVER_GUID,
+		Signature:             signature,
+		ServerRandomness:      constant.SERVER_RANDOMNESS,
+		Features:              "{}",
 		GroupType:             constant.GROUP_TYPE,
 		StatusCode:            constant.STATUS_CODE,
 		Company:               constant.COMPANY,
