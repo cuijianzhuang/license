@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"license/jetbrain/util"
+	"license/jetbrains/util"
 	"strings"
 )
 

@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	"license/jetbrain/util"
+	"license/jetbrains/util"
 	"license/logger"
 )
 

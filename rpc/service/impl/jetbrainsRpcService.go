@@ -2,8 +2,8 @@ package impl
 
 import (
 	"github.com/gin-gonic/gin"
-	"license/jetbrain/server/entity"
-	"license/jetbrain/util"
+	"license/jetbrains/server/entity"
+	"license/jetbrains/util"
 	"license/rpc/service"
 )
 

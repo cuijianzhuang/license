@@ -2,7 +2,7 @@ package cron
 
 import (
 	"github.com/robfig/cron/v3"
-	"license/jetbrain/code/task"
+	"license/jetbrains/code/task"
 	"license/logger"
 )
 

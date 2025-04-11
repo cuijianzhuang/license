@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"license/jetbrain/code/entity"
-	"license/jetbrain/code/mapper"
+	"license/jetbrains/code/entity"
+	"license/jetbrains/code/mapper"
 	"license/logger"
 	"math/rand"
 	"net/http"
@@ -176,7 +176,11 @@ func (s *PluginServiceImpl) fetchPlugins(url string) ([]*entity.PluginEntity, er
 			} `json:"purchaseInfo"`
 		}
 
-		json.Unmarshal(detailBody, &detail)
+		err = json.Unmarshal(detailBody, &detail)
+		if err != nil {
+			logger.Error("Error unmarshaling plugin detail JSON:", err)
+			continue
+		}
 
 		plugins = append(plugins, &entity.PluginEntity{
 			PluginID:        p.ID,

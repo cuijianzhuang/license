@@ -3,7 +3,7 @@ package entity
 import (
 	"encoding/xml"
 	"fmt"
-	"license/jetbrain/util"
+	"license/jetbrains/util"
 	"net/http"
 	"time"
 )

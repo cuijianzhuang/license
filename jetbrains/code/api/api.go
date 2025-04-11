@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"license/jetbrain/code/service"
-	"license/jetbrain/util"
+	"license/jetbrains/code/service"
+	"license/jetbrains/util"
 	"license/logger"
 	"strings"
 )

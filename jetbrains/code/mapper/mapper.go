@@ -2,7 +2,7 @@ package mapper
 
 import (
 	"license/config"
-	"license/jetbrain/code/entity"
+	"license/jetbrains/code/entity"
 	"license/logger"
 )
 

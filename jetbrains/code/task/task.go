@@ -1,7 +1,7 @@
 package task
 
 import (
-	"license/jetbrain/code/service"
+	"license/jetbrains/code/service"
 	"license/logger"
 )
 

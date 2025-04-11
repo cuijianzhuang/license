@@ -4,7 +4,7 @@ import (
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"license/jetbrain/code/entity"
+	"license/jetbrains/code/entity"
 	"license/logger"
 )
 

@@ -7,9 +7,9 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/json"
-	"license/jetbrain/code/dto"
-	"license/jetbrain/code/mapper"
-	"license/jetbrain/util"
+	"license/jetbrains/code/dto"
+	"license/jetbrains/code/mapper"
+	"license/jetbrains/util"
 	"license/logger"
 	"time"
 )
