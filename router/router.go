@@ -11,7 +11,7 @@ import (
 	rpc "license/rpc/controller"
 )
 
-func SetupRouter(r *gin.Engine) {
+func SetupRouter(r *gin.RouterGroup) {
 	serverGroup := r.Group("/server")
 	{
 		serverGroup.GET("/status", func(c *gin.Context) {
