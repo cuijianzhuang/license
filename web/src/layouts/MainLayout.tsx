@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Drawer } from 'antd';
+import { Layout, Menu, Button, Drawer, Space } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import { 
   MenuUnfoldOutlined,
   AppstoreOutlined,
@@ -12,6 +13,7 @@ import {
   DesktopOutlined
 } from '@ant-design/icons';
 import { responsive } from '../styles/theme';
+import LanguageSelector from '../components/LanguageSelector';
 
 const { Header, Content } = Layout;
 
@@ -70,11 +72,18 @@ const MainContent = styled(Content)`
   }
 `;
 
+const HeaderControls = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+`;
+
 const MainLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(responsive.isMobile());
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleResize = () => {
@@ -89,32 +98,32 @@ const MainLayout: React.FC = () => {
     {
       key: '/',
       icon: <HomeOutlined />,
-      label: '首页',
+      label: t('nav.home'),
     },
     {
       key: '/jetbrains',
       icon: <CodeOutlined />,
-      label: 'JetBrains',
+      label: t('nav.jetbrains'),
     },
     {
       key: '/gitlab',
       icon: <BranchesOutlined />,
-      label: 'GitLab',
+      label: t('nav.gitlab'),
     },
     {
       key: '/finalshell',
       icon: <DesktopOutlined />,
-      label: 'FinalShell',
+      label: t('nav.finalshell'),
     },
     {
       key: '/mobaxterm',
       icon: <CodeSandboxOutlined />,
-      label: 'MobaXterm',
+      label: t('nav.mobaxterm'),
     },
     {
       key: '/jrebel',
       icon: <AppstoreOutlined />,
-      label: 'JRebel',
+      label: t('nav.jrebel'),
     },
   ];
 
@@ -142,10 +151,13 @@ const MainLayout: React.FC = () => {
             onClick={({ key }) => onMenuClick(key)}
           />
         </DesktopMenu>
+        <HeaderControls>
+          <LanguageSelector />
+        </HeaderControls>
       </StyledHeader>
       
       <Drawer
-        title="选择工具"
+        title={t('app.title')}
         placement="left"
         onClose={() => setMobileOpen(false)}
         open={mobileOpen}

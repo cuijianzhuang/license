@@ -2,6 +2,7 @@ import React from 'react';
 import { Typography, Row, Col, Card, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import {
   CodeOutlined,
   BranchesOutlined,
@@ -72,39 +73,40 @@ const ActionButton = styled(Button)`
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const tools = [
     {
-      title: 'JetBrains 激活工具',
-      description: '生成JetBrains全系列产品的激活码，包括IntelliJ IDEA, PyCharm, WebStorm等',
+      title: t('home.tools.jetbrains.title'),
+      description: t('home.tools.jetbrains.description'),
       icon: <CodeOutlined />,
       path: '/jetbrains',
       color: '#f0f5ff',
     },
     {
-      title: 'GitLab 许可证',
-      description: '为GitLab创建企业版许可证，解锁所有高级功能',
+      title: t('home.tools.gitlab.title'),
+      description: t('home.tools.gitlab.description'),
       icon: <BranchesOutlined />,
       path: '/gitlab',
       color: '#f3f4f6',
     },
     {
-      title: 'FinalShell 注册机',
-      description: '生成FinalShell SSH工具的注册码',
+      title: t('home.tools.finalshell.title'),
+      description: t('home.tools.finalshell.description'),
       icon: <DesktopOutlined />,
       path: '/finalshell',
       color: '#f0fdf4',
     },
     {
-      title: 'MobaXterm 激活工具',
-      description: '解锁MobaXterm高级功能，生成专业版激活码',
+      title: t('home.tools.mobaxterm.title'),
+      description: t('home.tools.mobaxterm.description'),
       icon: <CodeSandboxOutlined />,
       path: '/mobaxterm',
       color: '#eff6ff',
     },
     {
-      title: 'JRebel 激活服务',
-      description: '提供JRebel热部署工具激活服务',
+      title: t('home.tools.jrebel.title'),
+      description: t('home.tools.jrebel.description'),
       icon: <AppstoreOutlined />,
       path: '/jrebel',
       color: '#f5f3ff',
@@ -118,9 +120,9 @@ const Home: React.FC = () => {
   return (
     <>
       <HeroSection>
-        <HeroTitle level={1}>软件许可证生成服务</HeroTitle>
+        <HeroTitle level={1}>{t('home.welcome')}</HeroTitle>
         <HeroDescription>
-          一站式解决开发工具的许可证需求，支持各类常用开发工具的激活服务
+          {t('home.description')}
         </HeroDescription>
       </HeroSection>
       
@@ -140,7 +142,7 @@ const Home: React.FC = () => {
                   navigate(tool.path);
                 }}
               >
-                立即使用
+                {t('common.useNow')}
               </ActionButton>
             </ToolCard>
           </Col>

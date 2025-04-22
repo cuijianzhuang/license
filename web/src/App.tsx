@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, App as AntApp } from 'antd';
 import zhCN from 'antd/lib/locale/zh_CN';
+import enUS from 'antd/lib/locale/en_US';
+import { useTranslation } from 'react-i18next';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import JetBrains from './pages/JetBrains';
@@ -13,13 +15,20 @@ import GlobalStyles from './styles/GlobalStyles';
 import { theme } from './styles/theme';
 
 const App: React.FC = () => {
-  // 设置页面标题
+  const { t, i18n } = useTranslation();
+  
+  // Set page title based on current language
   useEffect(() => {
-    document.title = '软件许可证生成服务';
-  }, []);
+    document.title = t('app.title');
+  }, [t]);
+
+  // Get antd locale based on current language
+  const getAntdLocale = () => {
+    return i18n.language.startsWith('zh') ? zhCN : enUS;
+  };
 
   return (
-    <ConfigProvider locale={zhCN} theme={theme}>
+    <ConfigProvider locale={getAntdLocale()} theme={theme}>
       <AntApp>
         <GlobalStyles />
         <BrowserRouter>
