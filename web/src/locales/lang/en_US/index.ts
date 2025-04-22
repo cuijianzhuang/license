@@ -47,6 +47,31 @@ const enUS = {
         description: 'Provide activation service for JRebel hot deployment tool'
       }
     }
+  },
+  jetbrains: {
+    title: 'JetBrains Activation Tool',
+    subTitle: 'Generate activation codes for all JetBrains products',
+    activationMethod: 'Activation Method',
+    codeActivation: 'Activation Code',
+    serverActivation: 'Online Server Activation',
+    licenseeName: 'Licensee Name',
+    pleaseEnterLicenseeName: 'Please enter licensee name',
+    effectiveDate: 'Effective Date',
+    effectiveDatePlaceholder: 'Example: 2024-05-01 12:30:00',
+    productCode: 'Product Code',
+    pleaseEnterProductCode: 'Please enter product code, separate multiple products with commas',
+    generateActivationCode: 'Generate Activation Code',
+    serverActivationDescription: 'You can also activate JetBrains products by configuring an activation server. Copy the power.conf configuration below to the JetBrains activation server settings:',
+    serverConfig: 'Server Activation Configuration',
+    loadingServerRule: 'Loading server rules, please wait...',
+    serverRuleAutoload: 'Server rules will be automatically loaded after clicking the server activation option',
+    activationSuccess: 'Activation Code Generated Successfully',
+    product: 'Product',
+    unknownProduct: 'Unknown Product',
+    powerConfConfig: 'power.conf Configuration',
+    activationCode: 'Activation Code',
+    copySuccess: 'Copied successfully',
+    copyFail: 'Copy failed, please copy manually'
   }
 };
 

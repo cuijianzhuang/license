@@ -7,6 +7,7 @@ import {
   CopyOutlined,
   CheckOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../components/PageHeader';
 import ResultCard from '../components/ResultCard';
 import { jetbrains } from '../api';
@@ -78,6 +79,7 @@ const LabelText = styled(Text)`
 `;
 
 const JetBrains: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [license, setLicense] = useState<JetBrainsLicense | null>(null);
   const [rawResponse, setRawResponse] = useState<string | null>(null);
@@ -138,13 +140,13 @@ const JetBrains: React.FC = () => {
   const copyToClipboard = (key: string, text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopying({ ...copying, [key]: true });
-      message.success('复制成功');
+      message.success(t('jetbrains.copySuccess'));
       
       setTimeout(() => {
         setCopying({ ...copying, [key]: false });
       }, 2000);
     }).catch(() => {
-      message.error('复制失败，请手动复制');
+      message.error(t('jetbrains.copyFail'));
     });
   };
 
@@ -187,24 +189,24 @@ const JetBrains: React.FC = () => {
   const breadcrumbs = [
     {
       path: '/',
-      breadcrumbName: '首页',
+      breadcrumbName: t('nav.home'),
     },
     {
       path: '',
-      breadcrumbName: 'JetBrains 激活工具',
+      breadcrumbName: t('nav.jetbrains'),
     },
   ];
 
   const onFinish = (values: any) => {
     if (!values.licenseeName) {
-      message.error('请输入授权用户名');
+      message.error(t('jetbrains.pleaseEnterLicenseeName'));
       return;
     }
 
     // 如果是按照产品生成激活码
     if (activationMethod === 'code') {
       if (!values.manualCodes) {
-        message.error('请输入产品代码');
+        message.error(t('jetbrains.pleaseEnterProductCode'));
         return;
       }
       
@@ -225,45 +227,45 @@ const JetBrains: React.FC = () => {
   return (
     <div>
       <PageHeader
-        title="JetBrains 激活工具"
-        subTitle="生成JetBrains全系列产品的激活码"
+        title={t('jetbrains.title')}
+        subTitle={t('jetbrains.subTitle')}
         breadcrumbs={breadcrumbs}
       />
 
-      <FormCard title="JetBrains 激活工具">
+      <FormCard title={t('jetbrains.title')}>
         <Radio.Group 
           value={activationMethod} 
           onChange={(e) => setActivationMethod(e.target.value)}
           style={{ marginBottom: 16 }}
         >
-          <Radio.Button value="code">激活码激活</Radio.Button>
-          <Radio.Button value="server">在线服务器激活</Radio.Button>
+          <Radio.Button value="code">{t('jetbrains.codeActivation')}</Radio.Button>
+          <Radio.Button value="server">{t('jetbrains.serverActivation')}</Radio.Button>
         </Radio.Group>
 
         {activationMethod === 'code' ? (
           <Form form={codeForm} onFinish={onFinish} layout="vertical">
             <Form.Item
               name="licenseeName"
-              label="授权用户名"
-              rules={[{ required: true, message: '请输入授权用户名' }]}
+              label={t('jetbrains.licenseeName')}
+              rules={[{ required: true, message: t('jetbrains.pleaseEnterLicenseeName') }]}
             >
-              <Input placeholder="请输入授权用户名" />
+              <Input placeholder={t('jetbrains.pleaseEnterLicenseeName')} />
             </Form.Item>
 
             <Form.Item
               name="effectiveDate"
-              label="有效日期"
+              label={t('jetbrains.effectiveDate')}
             >
-              <Input placeholder="例如: 2024-05-01 12:30:00" />
+              <Input placeholder={t('jetbrains.effectiveDatePlaceholder')} />
             </Form.Item>
             
             <Form.Item
               name="manualCodes"
-              label="产品代码"
-              rules={[{ required: true, message: '请输入产品代码' }]}
+              label={t('jetbrains.productCode')}
+              rules={[{ required: true, message: t('jetbrains.pleaseEnterProductCode') }]}
             >
               <Input.TextArea 
-                placeholder="请输入产品代码，多个产品用逗号分隔" 
+                placeholder={t('jetbrains.pleaseEnterProductCode')} 
                 rows={3}
               />
             </Form.Item>
@@ -274,19 +276,19 @@ const JetBrains: React.FC = () => {
                 htmlType="submit"
                 loading={loading}
               >
-                生成激活码
+                {t('jetbrains.generateActivationCode')}
               </SubmitButton>
             </Form.Item>
           </Form>
         ) : (
           <div>
             <Paragraph>
-              您也可以通过配置激活服务器的方式激活JetBrains产品。复制下面的power.conf配置到JetBrains激活服务器设置中：
+              {t('jetbrains.serverActivationDescription')}
             </Paragraph>
 
             {serverRule ? (
               <ResultCard
-                title="服务器激活配置"
+                title={t('jetbrains.serverConfig')}
                 data={{
                   'power.conf配置': serverRule,
                 }}
@@ -294,7 +296,7 @@ const JetBrains: React.FC = () => {
               />
             ) : (
               <Alert
-                message={loadingServerRule ? "正在加载服务器规则，请稍候..." : "点击服务器激活选项后将自动加载服务器规则"}
+                message={loadingServerRule ? t('jetbrains.loadingServerRule') : t('jetbrains.serverRuleAutoload')}
                 type="info"
                 showIcon
                 icon={loadingServerRule ? <LoadingOutlined /> : <InfoCircleOutlined />}
@@ -306,18 +308,18 @@ const JetBrains: React.FC = () => {
 
       {/* Custom license result display */}
       {license && rawResponse && (
-        <LicenseResultCard title={<Title level={5} style={{ margin: 0 }}>激活码生成成功</Title>}>
+        <LicenseResultCard title={<Title level={5} style={{ margin: 0 }}>{t('jetbrains.activationSuccess')}</Title>}>
           <Space direction="vertical" style={{ width: '100%' }}>
             <div>
-              <LabelText>产品:</LabelText>
+              <LabelText>{t('jetbrains.product')}:</LabelText>
               <LicenseContent>
-                {license.product || '未知产品'}
+                {license.product || t('jetbrains.unknownProduct')}
               </LicenseContent>
             </div>
             
             {extractPowerConf() && (
               <div style={{ marginTop: 16 }}>
-                <LabelText>power.conf配置:</LabelText>
+                <LabelText>{t('jetbrains.powerConfConfig')}:</LabelText>
                 <LicenseContent>
                   {extractPowerConf()}
                   <CopyButton
@@ -333,7 +335,7 @@ const JetBrains: React.FC = () => {
             
             {extractActivationCode() && (
               <div style={{ marginTop: 16 }}>
-                <LabelText>激活码:</LabelText>
+                <LabelText>{t('jetbrains.activationCode')}:</LabelText>
                 <LicenseContent>
                   {extractActivationCode()}
                   <CopyButton
