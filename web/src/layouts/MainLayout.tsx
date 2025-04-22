@@ -34,11 +34,22 @@ const StyledHeader = styled(Header)`
   backdrop-filter: blur(8px);
 `;
 
-const Logo = styled.div`
+const LogoWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 48px;
+  cursor: pointer;
+`;
+
+const LogoImage = styled.img`
+  height: 32px;
+  margin-right: 8px;
+`;
+
+const LogoText = styled.span`
   color: #1890ff;
   font-size: 20px;
   font-weight: bold;
-  margin-right: 48px;
 `;
 
 const StyledMenu = styled(Menu)`
@@ -142,7 +153,10 @@ const MainLayout: React.FC = () => {
           icon={<MenuUnfoldOutlined />}
           onClick={() => setMobileOpen(true)}
         />
-        <Logo>License</Logo>
+        <LogoWrapper onClick={() => navigate('/')}>
+          <LogoImage src="/logo.svg" alt="License" />
+          <LogoText>License</LogoText>
+        </LogoWrapper>
         <DesktopMenu>
           <StyledMenu 
             mode="horizontal" 
@@ -157,7 +171,12 @@ const MainLayout: React.FC = () => {
       </StyledHeader>
       
       <Drawer
-        title={t('app.title')}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.svg" alt="License" style={{ height: '28px', marginRight: '8px' }} />
+            <span>License</span>
+          </div>
+        }
         placement="left"
         onClose={() => setMobileOpen(false)}
         open={mobileOpen}
