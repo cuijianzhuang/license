@@ -78,6 +78,37 @@ const zhCN = {
     licenseGenerationError: '生成授权码失败',
     powerConfLabel: 'power.conf配置'
   },
+  gitlab: {
+    title: 'GitLab授权服务',
+    subTitle: '为GitLab创建企业版许可证',
+    description: '填写以下表单信息，生成GitLab企业版许可证。生成的许可证可用于激活GitLab企业版的所有功能。',
+    warning: '注意事项',
+    warningDescription: '生成的GitLab许可证仅供学习和测试使用，请勿用于商业环境。',
+    form: {
+      name: '授权',
+      namePlaceholder: '请输入授权名称',
+      email: '电子邮件',
+      emailPlaceholder: '请输入电子邮件',
+      emailInvalid: '请输入有效的电子邮件',
+      company: '公司',
+      companyPlaceholder: '请输入公司名称',
+      expireTime: '过期日期',
+      expireTimePlaceholder: '请选择过期日期',
+      generateButton: '生成许可证'
+    },
+    success: {
+      title: 'GitLab许可证生成成功',
+      name: '授权',
+      email: '电子邮件',
+      company: '公司',
+      expireTime: '过期日期',
+      license: '许可证',
+      notSpecified: '未指定',
+      downloadStarted: '许可证文件下载已开始',
+      downloadWarning: '许可证生成可能未完成，请检查下载',
+      downloadFailed: '许可证生成失败，请重试'
+    }
+  },
   jrebel: {
     title: 'JRebel授权服务',
     subTitle: '为JRebel热部署工具提供授权服务',

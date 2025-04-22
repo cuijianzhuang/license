@@ -21,10 +21,10 @@ export interface JetBrainsLicense {
 export interface GitLabLicense {
   id?: number;
   license: string;
-  company?: string;
+  name?: string;
   email?: string;
-  expiresAt?: string;
-  userCount?: number;
+  company?: string;
+  expireTime?: string;
   createdAt?: string;
 }
 

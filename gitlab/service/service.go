@@ -200,6 +200,7 @@ func createLicense(ctx *gin.Context, licenseInfo entity.LicenseInfo, expireTime 
 // exportZipStream 创建并发送包含加密许可证和公钥文件的ZIP文件
 func exportZipStream(ctx *gin.Context, encryptedLicense string) error {
 	// 设置响应头部以便文件下载
+	ctx.Status(http.StatusOK) // 明确设置状态码为200 OK
 	ctx.Header("Content-Disposition", "attachment; filename=license.zip")
 	ctx.Header("Content-Type", "application/zip")
 

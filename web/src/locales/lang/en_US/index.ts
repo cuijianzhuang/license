@@ -78,6 +78,37 @@ const enUS = {
     licenseGenerationError: 'Failed to generate authorization code',
     powerConfLabel: 'power.conf Configuration'
   },
+  gitlab: {
+    title: 'GitLab Authorization Service',
+    subTitle: 'Create enterprise license for GitLab',
+    description: 'Fill in the form below to generate a GitLab enterprise license. The generated license can be used to activate all features of GitLab Enterprise Edition.',
+    warning: 'Important Notice',
+    warningDescription: 'The generated GitLab license is for learning and testing purposes only, not for commercial use.',
+    form: {
+      name: 'Name',
+      namePlaceholder: 'Please enter your name',
+      email: 'Email Address',
+      emailPlaceholder: 'Please enter email address',
+      emailInvalid: 'Please enter a valid email address',
+      company: 'Company/Organization',
+      companyPlaceholder: 'Please enter company or organization name',
+      expireTime: 'Expiration Date',
+      expireTimePlaceholder: 'Please select expiration date',
+      generateButton: 'Generate License'
+    },
+    success: {
+      title: 'GitLab License Generated Successfully',
+      name: 'Name',
+      email: 'Email',
+      company: 'Company/Organization',
+      expireTime: 'Expiration Date',
+      license: 'License',
+      notSpecified: 'Not specified',
+      downloadStarted: 'License file download has started',
+      downloadWarning: 'License generation may not be complete, please check download',
+      downloadFailed: 'License generation failed, please try again'
+    }
+  },
   jrebel: {
     title: 'JRebel Authorization Service',
     subTitle: 'Provide authorization service for JRebel hot deployment tool',

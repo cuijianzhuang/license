@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Typography, Form, Button, Input, DatePicker, InputNumber, Alert } from 'antd';
+import { Typography, Form, Button, Input, DatePicker, Alert, message } from 'antd';
 import styled from 'styled-components';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../components/PageHeader';
-import ResultCard from '../components/ResultCard';
 import { gitlab } from '../api';
-import { GitLabLicense } from '../types';
 
 const { Paragraph } = Typography;
 
@@ -15,27 +15,43 @@ const FormWrapper = styled.div`
 `;
 
 const GitLab: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [license, setLicense] = useState<GitLabLicense | null>(null);
   const [form] = Form.useForm();
+  
+  // 计算本年度最后一天的23:59:59
+  const getEndOfYear = () => {
+    const currentYear = dayjs().year();
+    return dayjs(`${currentYear}-12-31 23:59:59`);
+  };
 
   const handleGenerateLicense = async (values: {
-    company: string;
+    name: string;
     email: string;
-    userCount: number;
-    expiresAt: moment.Moment;
+    company: string;
+    expireTime: Dayjs;
   }) => {
     setLoading(true);
     try {
-      const data = await gitlab.generateLicense(
-        values.company,
+      const success = await gitlab.generateLicense(
+        values.name,
         values.email,
-        values.userCount,
-        values.expiresAt.format('YYYY-MM-DD')
+        values.company,
+        values.expireTime.format('YYYY-MM-DD HH:mm:ss')
       );
-      setLicense(data);
-    } catch (error) {
+      
+      if (success) {
+        // 显示成功消息
+        message.success(t('gitlab.success.downloadStarted'));
+      } else {
+        // 虽然不应该到达这里，但以防万一
+        message.warning(t('gitlab.success.downloadWarning'));
+      }
+    } catch (error: any) {
       console.error('生成许可证失败:', error);
+      // 显示更具体的错误消息
+      const errorMsg = error.message || t('gitlab.success.downloadFailed');
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -44,29 +60,29 @@ const GitLab: React.FC = () => {
   const breadcrumbs = [
     {
       path: '/',
-      breadcrumbName: '首页',
+      breadcrumbName: t('nav.home'),
     },
     {
       path: '',
-      breadcrumbName: 'GitLab 许可证生成',
+      breadcrumbName: t('nav.gitlab'),
     },
   ];
 
   return (
     <div>
       <PageHeader
-        title="GitLab 许可证生成"
-        subTitle="为GitLab创建企业版许可证"
+        title={t('gitlab.title')}
+        subTitle={t('gitlab.subTitle')}
         breadcrumbs={breadcrumbs}
       />
 
       <Paragraph>
-        填写以下表单信息，生成GitLab企业版许可证。生成的许可证可用于激活GitLab企业版的所有功能。
+        {t('gitlab.description')}
       </Paragraph>
 
       <Alert
-        message="注意事项"
-        description="生成的GitLab许可证仅供学习和测试使用，请勿用于商业环境。"
+        message={t('gitlab.warning')}
+        description={t('gitlab.warningDescription')}
         type="warning"
         showIcon
         style={{ marginBottom: 24 }}
@@ -75,69 +91,56 @@ const GitLab: React.FC = () => {
       <FormWrapper>
         <Form form={form} onFinish={handleGenerateLicense} layout="vertical">
           <Form.Item
-            name="company"
-            label="公司/组织名称"
-            rules={[{ required: true, message: '请输入公司/组织名称' }]}
+            name="name"
+            label={t('gitlab.form.name')}
+            rules={[{ required: true, message: t('gitlab.form.namePlaceholder') }]}
           >
-            <Input placeholder="请输入公司或组织名称" />
+            <Input placeholder={t('gitlab.form.namePlaceholder')} />
           </Form.Item>
 
           <Form.Item
             name="email"
-            label="邮箱地址"
+            label={t('gitlab.form.email')}
             rules={[
-              { required: true, message: '请输入邮箱地址' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
+              { required: true, message: t('gitlab.form.emailPlaceholder') },
+              { type: 'email', message: t('gitlab.form.emailInvalid') },
             ]}
           >
-            <Input placeholder="请输入邮箱地址" />
+            <Input placeholder={t('gitlab.form.emailPlaceholder')} />
           </Form.Item>
 
           <Form.Item
-            name="userCount"
-            label="用户数量"
-            rules={[{ required: true, message: '请输入用户数量' }]}
-            initialValue={100}
+            name="company"
+            label={t('gitlab.form.company')}
+            rules={[{ required: true, message: t('gitlab.form.companyPlaceholder') }]}
           >
-            <InputNumber min={1} max={10000} style={{ width: '100%' }} />
+            <Input placeholder={t('gitlab.form.companyPlaceholder')} />
           </Form.Item>
 
           <Form.Item
-            name="expiresAt"
-            label="过期日期"
-            rules={[{ required: true, message: '请选择过期日期' }]}
-            initialValue={moment().add(1, 'year')}
+            name="expireTime"
+            label={t('gitlab.form.expireTime')}
+            rules={[{ required: true, message: t('gitlab.form.expireTimePlaceholder') }]}
+            initialValue={getEndOfYear()}
           >
             <DatePicker
-              format="YYYY-MM-DD"
+              format="YYYY-MM-DD HH:mm:ss"
               style={{ width: '100%' }}
+              placeholder={t('gitlab.form.expireTimePlaceholder')}
+              showTime={{ defaultValue: dayjs('23:59:59', 'HH:mm:ss') }}
               disabledDate={(current) => {
-                return current && current < moment().endOf('day');
+                return current && current < dayjs().endOf('day');
               }}
             />
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>
-              生成许可证
+              {t('gitlab.form.generateButton')}
             </Button>
           </Form.Item>
         </Form>
       </FormWrapper>
-
-      {license && (
-        <ResultCard
-          title="GitLab许可证生成成功"
-          data={{
-            '公司/组织': license.company || '未指定',
-            '邮箱': license.email || '未指定',
-            '用户数量': String(license.userCount) || '未指定',
-            '过期日期': license.expiresAt || '未指定',
-            '许可证': license.license,
-          }}
-          fileName="gitlab-license.txt"
-        />
-      )}
     </div>
   );
 };
