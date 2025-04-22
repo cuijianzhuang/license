@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Typography, Form, Button, Alert, Card, Space, message, Input, Radio } from 'antd';
+import { Typography, Form, Button, Alert, Card, Space, message, Input, Radio, DatePicker, ConfigProvider } from 'antd';
 import styled from 'styled-components';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
 import { 
   LoadingOutlined, 
   InfoCircleOutlined,
@@ -102,7 +106,7 @@ const ServerAddressContainer = styled.div`
 `;
 
 const JetBrains: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [license, setLicense] = useState<JetBrainsLicense | null>(null);
   const [rawResponse, setRawResponse] = useState<string | null>(null);
@@ -113,6 +117,13 @@ const JetBrains: React.FC = () => {
   const [codeForm] = Form.useForm();
   const [serverAddress, setServerAddress] = useState<string>('');
   const previousMethodRef = useRef<'code' | 'server'>(activationMethod);
+
+  // Set dayjs locale based on i18n language
+  useEffect(() => {
+    // Map i18n language code to dayjs locale
+    const locale = i18n.language.startsWith('zh') ? 'zh-cn' : 'en';
+    dayjs.locale(locale);
+  }, [i18n.language]);
 
   // Get browser's host address when component mounts
   useEffect(() => {
@@ -164,14 +175,19 @@ const JetBrains: React.FC = () => {
 
   const handleGenerateLicense = async (values: { 
     licenseeName?: string, 
-    effectiveDate?: string, 
+    effectiveDate?: Dayjs,
     codes?: string 
   }) => {
     setLoading(true);
     try {
+      // Format the date if it exists
+      const formattedDate = values.effectiveDate 
+        ? values.effectiveDate.format('YYYY-MM-DD HH:mm:ss') 
+        : undefined;
+        
       const data = await jetbrains.generateLicense(
         values.licenseeName, 
-        values.effectiveDate, 
+        formattedDate, 
         values.codes
       );
 
@@ -277,6 +293,12 @@ const JetBrains: React.FC = () => {
     }
   };
 
+  // Function to disable past dates in DatePicker
+  const disablePastDates = (current: Dayjs) => {
+    // Can not select days before today
+    return current && current < dayjs().startOf('day');
+  };
+
   return (
     <div>
       <PageHeader
@@ -309,7 +331,20 @@ const JetBrains: React.FC = () => {
               name="effectiveDate"
               label={t('jetbrains.effectiveDate')}
             >
-              <Input placeholder={t('jetbrains.effectiveDatePlaceholder')} />
+              <DatePicker 
+                showTime
+                style={{ width: '100%' }} 
+                placeholder={t('jetbrains.effectiveDatePlaceholder')}
+                format="YYYY-MM-DD HH:mm:ss"
+                disabledDate={disablePastDates}
+                showNow={false}
+                defaultValue={dayjs().add(1, 'day')}
+                // Set locale to match i18n language
+                locale={i18n.language.startsWith('zh') ? 
+                  require('antd/es/date-picker/locale/zh_CN').default : 
+                  require('antd/es/date-picker/locale/en_US').default
+                }
+              />
             </Form.Item>
             
             <Form.Item

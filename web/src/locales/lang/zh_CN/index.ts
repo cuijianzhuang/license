@@ -57,7 +57,7 @@ const zhCN = {
     licenseeName: '授权用户名',
     pleaseEnterLicenseeName: '请输入授权用户名',
     effectiveDate: '有效日期',
-    effectiveDatePlaceholder: '例如: 2024-05-01 12:30:00',
+    effectiveDatePlaceholder: '选择日期和时间',
     productCode: '产品代码',
     pleaseEnterProductCode: '请输入产品代码，多个产品用逗号分隔',
     generateActivationCode: '生成授权码',

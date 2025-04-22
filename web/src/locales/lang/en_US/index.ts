@@ -57,7 +57,7 @@ const enUS = {
     licenseeName: 'Licensee Name',
     pleaseEnterLicenseeName: 'Please enter licensee name',
     effectiveDate: 'Effective Date',
-    effectiveDatePlaceholder: 'Example: 2024-05-01 12:30:00',
+    effectiveDatePlaceholder: 'Select date and time',
     productCode: 'Product Code',
     pleaseEnterProductCode: 'Please enter product code, separate multiple products with commas',
     generateActivationCode: 'Generate Authorization Code',
