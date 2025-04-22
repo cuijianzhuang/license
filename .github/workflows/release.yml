@@ -150,9 +150,13 @@ jobs:
       - name: Compress and upload web build artifacts
         run: |
           echo "Compressing web build directory..."
-          tar -czvf web-build.tar.gz -C web build/
+          # 确保保留web/build目录结构
+          tar -czvf web-build.tar.gz web/build/
           echo "Compressed size:"
           ls -lh web-build.tar.gz
+          # 验证压缩包内容
+          echo "Verifying archive contents:"
+          tar -tvf web-build.tar.gz | head -10
       
       - name: Upload web build archive
         uses: actions/upload-artifact@v4
@@ -206,14 +210,39 @@ jobs:
           echo "Downloaded archive:"
           ls -la tmp/
           
-          # 提取压缩包到项目根目录，保留web/build结构
+          # 检查压缩包内容
+          echo "Archive contents:"
+          tar -tvf tmp/web-build.tar.gz | head -10
+          
+          # 确保web目录存在
+          mkdir -p web
+          
+          # 提取压缩包到项目根目录，确保解压到web/build目录
           echo "Extracting web build archive..."
           tar -xzvf tmp/web-build.tar.gz
           
+          # 查看当前目录结构
+          echo "Current directory structure:"
+          find . -type d -name build | head -10
+          
+          # 如果解压后的文件在build/目录下，则移动到web/build/
+          if [ -d "build" ] && [ ! -d "web/build" ]; then
+            echo "Moving build directory to web/build..."
+            mkdir -p web
+            mv build web/
+          fi
+          
           # 验证解压结果
           echo "Checking extracted web build:"
-          ls -la web/build/
-          echo "Web build successfully extracted and ready for embedding"
+          if [ -d "web/build" ]; then
+            ls -la web/build/
+            echo "Web build successfully extracted and ready for embedding"
+          else
+            echo "ERROR: web/build directory not found!"
+            echo "Current directory structure:"
+            find . -maxdepth 3 -type d
+            exit 1
+          fi
       
       # 编译不同平台的二进制文件
       - name: Build binaries
