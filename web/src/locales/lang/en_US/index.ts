@@ -1,6 +1,6 @@
 const enUS = {
   app: {
-    title: 'Software License Generation Service',
+    title: 'Software Authorization Service',
     language: 'Language'
   },
   nav: {
@@ -23,53 +23,53 @@ const enUS = {
     useNow: 'Use Now'
   },
   home: {
-    welcome: 'Welcome to Software License Generation Service',
-    description: 'One-stop solution for development tool license needs, supporting activation services for various common development tools',
+    welcome: 'Welcome to Software Authorization Service',
+    description: 'One-stop solution for development tool authorization needs, supporting services for various common development tools',
     tools: {
       jetbrains: {
-        title: 'JetBrains Activation Tool',
-        description: 'Generate activation codes for all JetBrains products, including IntelliJ IDEA, PyCharm, WebStorm, etc.'
+        title: 'JetBrains Authorization Assistant',
+        description: 'Obtain authorization information for all JetBrains products, including IntelliJ IDEA, PyCharm, WebStorm, etc.'
       },
       gitlab: {
-        title: 'GitLab License',
-        description: 'Create enterprise licenses for GitLab, unlocking all advanced features'
+        title: 'GitLab Authorization Service',
+        description: 'Create enterprise authorization for GitLab, unlocking all advanced features'
       },
       finalshell: {
-        title: 'FinalShell Registration Tool',
-        description: 'Generate registration codes for FinalShell SSH tools'
+        title: 'FinalShell Authorization Assistant',
+        description: 'Obtain authorization information for FinalShell SSH tools'
       },
       mobaxterm: {
-        title: 'MobaXterm Activation Tool',
-        description: 'Unlock MobaXterm advanced features, generate professional activation codes'
+        title: 'MobaXterm Authorization Service',
+        description: 'Unlock MobaXterm advanced features, obtain professional authorization'
       },
       jrebel: {
-        title: 'JRebel Activation Service',
-        description: 'Provide activation service for JRebel hot deployment tool'
+        title: 'JRebel Authorization Service',
+        description: 'Provide authorization service for JRebel hot deployment tool'
       }
     }
   },
   jetbrains: {
-    title: 'JetBrains Activation Tool',
-    subTitle: 'Generate activation codes for all JetBrains products',
-    activationMethod: 'Activation Method',
-    codeActivation: 'Activation Code',
-    serverActivation: 'Online Server Activation',
+    title: 'JetBrains Authorization Assistant',
+    subTitle: 'Obtain authorization information for all JetBrains products',
+    activationMethod: 'Authorization Method',
+    codeActivation: 'Authorization Code',
+    serverActivation: 'Online Server Authorization',
     licenseeName: 'Licensee Name',
     pleaseEnterLicenseeName: 'Please enter licensee name',
     effectiveDate: 'Effective Date',
     effectiveDatePlaceholder: 'Example: 2024-05-01 12:30:00',
     productCode: 'Product Code',
     pleaseEnterProductCode: 'Please enter product code, separate multiple products with commas',
-    generateActivationCode: 'Generate Activation Code',
-    serverActivationDescription: 'You can also activate JetBrains products by configuring an activation server. Copy the power.conf configuration below to the JetBrains activation server settings:',
-    serverConfig: 'Server Activation Configuration',
+    generateActivationCode: 'Generate Authorization Code',
+    serverActivationDescription: 'You can also use JetBrains products by configuring an authorization server. Copy the power.conf configuration below to the JetBrains authorization server settings:',
+    serverConfig: 'Server Authorization Configuration',
     loadingServerRule: 'Loading server rules, please wait...',
-    serverRuleAutoload: 'Server rules will be automatically loaded after clicking the server activation option',
-    activationSuccess: 'Activation Code Generated Successfully',
+    serverRuleAutoload: 'Server rules will be automatically loaded after clicking the server authorization option',
+    activationSuccess: 'Authorization Code Generated Successfully',
     product: 'Product',
     unknownProduct: 'Unknown Product',
     powerConfConfig: 'power.conf Configuration',
-    activationCode: 'Activation Code',
+    activationCode: 'Authorization Code',
     copySuccess: 'Copied successfully',
     copyFail: 'Copy failed, please copy manually'
   }
