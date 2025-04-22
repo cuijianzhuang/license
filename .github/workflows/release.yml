@@ -147,10 +147,36 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for proper versioning
       
+      # 设置Node.js环境用于构建前端
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+      
+      # 构建前端
+      - name: Build web frontend
+        run: |
+          echo "Building web frontend..."
+          cd web
+          npm ci
+          npm run build
+          cd ..
+          # 验证构建结果
+          echo "Checking web build output:"
+          ls -la web/build/
+          echo "Web frontend built successfully. It will be embedded in the Go binary using //go:embed"
+      
       # 编译不同平台的二进制文件
       - name: Build binaries
         run: |
           mkdir -p build
+          
+          # 验证web前端构建文件是否存在（这些文件将被Go的embed功能嵌入到二进制文件中）
+          echo "Checking web frontend build files for embedding into Go binary:"
+          ls -la web/build/
+          echo "These files will be embedded into the Go binary via //go:embed directive in main.go"
           
           # 现在使用纯Go实现的SQLite，可以禁用CGO简化构建
           
@@ -205,6 +231,26 @@ jobs:
           name: binaries
           path: build
 
+      # 设置Node.js环境用于构建前端
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+      
+      # 构建前端
+      - name: Build web frontend
+        run: |
+          echo "Building web frontend..."
+          cd web
+          npm ci
+          npm run build
+          cd ..
+          # 验证构建结果
+          echo "Checking web build output:"
+          ls -la web/build/
+
       # 准备Docker构建上下文
       - name: Prepare build context
         run: |
@@ -224,7 +270,14 @@ jobs:
           echo "Copied binaries:"
           ls -la docker-context/bin/
           
-          # 创建Dockerfile，避免使用TARGETARCH变量
+          # 复制web前端构建文件
+          echo "Copying web frontend build files..."
+          mkdir -p docker-context/web
+          cp -r web/build docker-context/web/
+          echo "Checking web build files in Docker context:"
+          ls -la docker-context/web/build/
+          
+          # 创建Dockerfile，避免使用TARGETARCH变量，并添加前端文件
           cat > docker-context/Dockerfile << EOF
           FROM alpine:latest
           
@@ -239,7 +292,10 @@ jobs:
           # 复制对应架构的预编译二进制文件
           COPY bin/license-\${TARGETARCH} /app/license
           
-          # 基本依赖，不再需要SQLite
+          # 复制前端构建文件（确保嵌入式前端可用）
+          COPY web/build/ /app/web/build/
+          
+          # 基本依赖
           RUN chmod +x /app/license && \\
               apk update && \\
               apk upgrade && \\
@@ -247,8 +303,8 @@ jobs:
               update-ca-certificates 2>/dev/null || true && \\
               mkdir -p /data
           
-          # 验证二进制文件（不使用file命令）
-          RUN ls -la /app && chmod +x /app/license
+          # 验证二进制文件和前端文件
+          RUN ls -la /app && ls -la /app/web/build/ && chmod +x /app/license
               
           ENTRYPOINT ["/app/license"]
           EOF
