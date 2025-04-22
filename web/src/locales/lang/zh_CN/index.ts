@@ -1,6 +1,6 @@
 const zhCN = {
   app: {
-    title: '软件授权服务',
+    title: '软件授权',
     language: '语言'
   },
   nav: {
@@ -23,7 +23,7 @@ const zhCN = {
     useNow: '立即使用'
   },
   home: {
-    welcome: '欢迎使用软件授权服务',
+    welcome: '欢迎使用软件授权',
     description: '一站式解决开发工具的授权需求，支持各类常用开发工具的服务',
     tools: {
       jetbrains: {

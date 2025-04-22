@@ -6,6 +6,15 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import enUS from '../locales/lang/en_US';
 import zhCN from '../locales/lang/zh_CN';
 
+// Get saved language from localStorage or default to browser language
+const getSavedLanguage = () => {
+  const savedLanguage = localStorage.getItem('i18nextLng');
+  if (savedLanguage) {
+    return savedLanguage.startsWith('zh') ? 'zh' : 'en';
+  }
+  return undefined; // Let language detector decide
+};
+
 // Configure i18next
 i18n
   // Detect user language
@@ -22,13 +31,15 @@ i18n
         translation: zhCN
       }
     },
-    fallbackLng: 'zh', // Default language if detection fails
+    lng: getSavedLanguage(), // Try to use saved language first
+    fallbackLng: 'en', // Default language is English if detection fails
     interpolation: {
       escapeValue: false // React already safes from XSS
     },
     detection: {
-      order: ['navigator', 'localStorage', 'cookie'],
-      caches: ['localStorage', 'cookie'] // Cache user language preference
+      order: ['localStorage', 'navigator'], // 1. Check localStorage, 2. Check browser language
+      lookupLocalStorage: 'i18nextLng',
+      caches: ['localStorage'] // Cache user language preference
     }
   });
 

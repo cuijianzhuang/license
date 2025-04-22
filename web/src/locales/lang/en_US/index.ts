@@ -1,6 +1,6 @@
 const enUS = {
   app: {
-    title: 'Software Authorization Service',
+    title: 'Software Authorization',
     language: 'Language'
   },
   nav: {
@@ -23,7 +23,7 @@ const enUS = {
     useNow: 'Use Now'
   },
   home: {
-    welcome: 'Welcome to Software Authorization Service',
+    welcome: 'Welcome to Software Authorization',
     description: 'One-stop solution for development tool authorization needs, supporting services for various common development tools',
     tools: {
       jetbrains: {

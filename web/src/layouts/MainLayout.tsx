@@ -142,7 +142,7 @@ const MainLayout: React.FC = () => {
           icon={<MenuUnfoldOutlined />}
           onClick={() => setMobileOpen(true)}
         />
-        <Logo>License Generator</Logo>
+        <Logo>License</Logo>
         <DesktopMenu>
           <StyledMenu 
             mode="horizontal" 
