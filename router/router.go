@@ -9,7 +9,43 @@ import (
 	jrebel "license/jrebel/api"
 	mobaxterm "license/mobaxterm/api"
 	rpc "license/rpc/controller"
+	"strings"
 )
+
+// API路径前缀列表
+var apiPrefixes = []string{
+	"/server/",
+	"/final-shell/",
+	"/gitlab/",
+	"/rpc/",
+	"/jrebel/",
+	"/agent/",
+	"/mobaxterm/",
+	"/jetbrains/",
+}
+
+// IsAPIPath 判断给定路径是否为API路径
+func IsAPIPath(path string) bool {
+	for _, prefix := range apiPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// HandleAPIRequest 处理API请求
+func HandleAPIRequest(c *gin.Context) {
+	// 创建临时路由引擎处理请求
+	tmpEngine := gin.New()
+	tmpGroup := tmpEngine.Group("/")
+
+	// 设置路由
+	SetupRouter(tmpGroup)
+
+	// 处理请求
+	tmpEngine.HandleContext(c)
+}
 
 func SetupRouter(r *gin.RouterGroup) {
 	serverGroup := r.Group("/server")

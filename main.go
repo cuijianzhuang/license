@@ -11,6 +11,7 @@ import (
 	"license/logger"
 	"license/router"
 	"net/http"
+	"strings"
 )
 
 //go:embed web/build
@@ -30,9 +31,32 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
-	// 为API路由添加前缀
+	// 在/api前缀下设置路由
 	apiGroup := r.Group("/api")
 	router.SetupRouter(apiGroup)
+
+	// 创建自定义中间件，拦截所有API请求
+	r.Use(func(c *gin.Context) {
+		path := c.Request.URL.Path
+
+		// 忽略已经以/api开头的请求，这些请求已经由apiGroup处理
+		if strings.HasPrefix(path, "/api/") {
+			c.Next()
+			return
+		}
+
+		// 检查是否是API请求，如果是则重定向到同名API处理器
+		if router.IsAPIPath(path) {
+			// 复制当前请求上下文，但将路径传递给API处理程序
+			c.Request.URL.Path = path
+			router.HandleAPIRequest(c)
+			c.Abort() // 停止后续中间件执行
+			return
+		}
+
+		// 不是API请求，继续执行后续中间件
+		c.Next()
+	})
 
 	// 提供前端静态文件
 	embedFS, err := static.EmbedFolder(EmbedFrontendFS, "web/build")
