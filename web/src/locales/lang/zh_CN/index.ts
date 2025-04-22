@@ -1,6 +1,6 @@
 const zhCN = {
   app: {
-    title: '软件授权',
+    title: '许可证授权服务',
     language: '语言'
   },
   nav: {
@@ -23,11 +23,11 @@ const zhCN = {
     useNow: '立即使用'
   },
   home: {
-    welcome: '欢迎使用软件授权',
+    welcome: '欢迎使用许可证授权服务',
     description: '一站式开发工具授权需求解决方案，支持各种常用开发工具的服务',
     tools: {
       jetbrains: {
-        title: 'JetBrains授权助手',
+        title: 'JetBrains授权服务',
         description: '获取所有JetBrains产品的授权信息，包括IntelliJ IDEA、PyCharm、WebStorm等'
       },
       gitlab: {
@@ -35,7 +35,7 @@ const zhCN = {
         description: '创建GitLab企业授权，解锁所有高级功能'
       },
       finalshell: {
-        title: 'FinalShell授权助手',
+        title: 'FinalShell授权服务',
         description: '获取FinalShell SSH工具的授权信息'
       },
       mobaxterm: {
@@ -49,7 +49,7 @@ const zhCN = {
     }
   },
   jetbrains: {
-    title: 'JetBrains授权助手',
+    title: 'JetBrains授权服务',
     subTitle: '获取所有JetBrains产品的授权信息',
     activationMethod: '授权方式',
     codeActivation: '授权码',
