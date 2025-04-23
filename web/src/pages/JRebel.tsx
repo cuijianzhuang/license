@@ -159,7 +159,7 @@ const JRebel: React.FC = () => {
 
       <Alert
         message={t('jrebel.usageNotice')}
-        description={t('jrebel.activationDescription')}
+        description={t('jrebel.authorizationDescription')}
         type="info"
         showIcon
         style={{ marginBottom: 24 }}
@@ -189,7 +189,7 @@ const JRebel: React.FC = () => {
         </ServerAddressContainer>
       </FormCard>
 
-      <FormCard title={t('jrebel.activationSteps')}>
+      <FormCard title={t('jrebel.usageSteps')}>
         <StepItem>
           <StepNumber>1</StepNumber>
           <StepContent>{t('jrebel.step1')}</StepContent>

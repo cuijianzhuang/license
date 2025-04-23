@@ -22,6 +22,8 @@
 - Ant Design
 - Styled Components
 - Axios
+- Node.js 22.14.0+
+- npm 10.9.0+
 
 ## 安装和使用
 

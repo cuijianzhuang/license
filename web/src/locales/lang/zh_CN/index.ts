@@ -83,7 +83,7 @@ const zhCN = {
     subTitle: '为JRebel热部署工具提供授权服务',
     description: 'JRebel是一款强大的Java热部署工具，能让您实时查看代码修改，无需重启应用服务器。',
     usageNotice: '使用说明',
-    activationDescription: '本服务提供JRebel激活。使用专用服务器地址激活JRebel。',
+    authorizationDescription: '本服务提供JRebel授权。使用专用服务器地址授权JRebel。',
     serverConfig: '服务器授权配置',
     configurationDetails: '配置详情',
     baseServerAddress: '基础服务器地址',
@@ -91,13 +91,13 @@ const zhCN = {
     regenerateGuid: '重新生成GUID',
     regenerateGuidButton: '重新生成',
     configurationRules: '配置规则',
-    activationSteps: 'JRebel激活步骤',
+    usageSteps: '使用说明',
     step1: '打开你的IDE（例如IntelliJ IDEA）',
     step2: '找到JRebel插件设置',
-    step3: '选择"Team URL"激活方式',
+    step3: '选择"Team URL"授权方式',
     step4: '在URL字段中输入上方服务器地址',
     step5: '在邮箱字段中输入任意有效的邮箱地址',
-    step6: '点击"激活"完成激活'
+    step6: '点击"授权"完成授权'
   },
   gitlab: {
     title: 'GitLab授权服务',
@@ -128,25 +128,39 @@ const zhCN = {
       downloadStarted: '许可证文件下载已开始',
       downloadWarning: '许可证生成可能未完成，请检查下载',
       downloadFailed: '许可证生成失败，请重试'
+    },
+    instructionsTitle: '使用说明',
+    usageSteps: {
+      step1: '生成许可证，下载压缩包',
+      step2: '解压压缩包',
+      step3: '将 .license_encryption_key.pub 替换到 /opt/gitlab/embedded/service/gitlab-rails/.license_encryption_key.pub',
+      step4: '重启GitLab',
+      step5: '登录管理员账号，导航到左下角【管理员】',
+      step6: '选择【设置】->【通用】->【添加许可证】',
+      step7: '将 license.gitlab-license 上传',
+      step8: '点击添加许可'
     }
   },
   finalshell: {
     title: 'FinalShell 授权服务',
-    subTitle: '生成FinalShell SSH工具的注册码',
-    description: 'FinalShell是一款优秀的SSH客户端工具，填写以下表单生成FinalShell的注册码，解锁所有专业功能。',
+    subTitle: '生成FinalShell SSH工具的授权码',
+    description: 'FinalShell是一款优秀的SSH客户端工具，填写以下表单生成FinalShell的授权码，解锁所有专业功能。',
     usageNotice: '使用说明',
-    warningDescription: '生成的注册码仅供学习和测试使用，请支持正版软件。',
+    warningDescription: '生成的授权码仅供学习和测试使用，请支持正版软件。',
     machineCode: '机器码',
     enterMachineCode: '请输入机器码',
     machineCodeRequired: '请输入机器码',
-    generateButton: '生成注册码',
-    registrationSuccess: 'FinalShell注册码生成成功',
+    generateButton: '生成授权码',
+    registrationSuccess: 'FinalShell授权码生成成功',
     instructionsTitle: '使用说明',
     usageSteps: {
       step1: '打开FinalShell软件',
-      step2: '点击"帮助" > "注册"',
-      step3: '输入上面生成的用户名和注册码',
-      step4: '点击"确定"完成注册'
+      step2: '点击右上角"激活/升级"',
+      step3: '选择"离线激活"',
+      step4: '复制机器码',
+      step5: '生成授权码',
+      step6: '粘贴授权码',
+      step7: '点击"确定"完成授权'
     },
     versions: {
       advancedBelow396: '版本号 < 3.9.6 高级版',
@@ -157,10 +171,10 @@ const zhCN = {
   },
   mobaxterm: {
     title: 'MobaXterm 授权服务',
-    subTitle: '生成 MobaXterm 专业版激活码',
-    description: 'MobaXterm 是一款功能强大的终端工具，集成了 X 服务器和网络工具。填写下方表单生成 MobaXterm 专业版激活码。',
+    subTitle: '生成 MobaXterm 专业版授权码',
+    description: 'MobaXterm 是一款功能强大的终端工具，集成了 X 服务器和网络工具。填写下方表单生成 MobaXterm 专业版授权码。',
     usageNotice: '使用说明',
-    warningDescription: '生成的激活码仅供学习和测试使用。请支持正版软件。',
+    warningDescription: '生成的授权码仅供学习和测试使用。请支持正版软件。',
     form: {
       username: '用户名',
       usernamePlaceholder: '请输入用户名',
@@ -169,19 +183,18 @@ const zhCN = {
       count: '许可证数量',
       countPlaceholder: '请输入许可证数量',
       countInvalid: '请输入正整数',
-      generateButton: '生成激活码',
+      generateButton: '生成授权码',
       getAuthCode: '获取授权码'
     },
     success: {
-      title: 'MobaXterm 激活码生成成功',
-      downloadStarted: '授权文件下载已开始'
+      title: 'MobaXterm 授权码生成成功',
+      downloadStarted: '授权文件"Custom.mxtpro"下载已开始'
     },
     instructionsTitle: '使用说明',
     usageSteps: {
-      step1: '打开 MobaXterm 软件',
-      step2: '点击右上角的"?"按钮，然后选择"Register"',
-      step3: '输入上方生成的用户名和激活码',
-      step4: '点击"确定"完成激活'
+      step1: '生成授权文件',
+      step2: '将Custom.mxtpro 放到 MobaXterm 安装目录',
+      step3: '启动 MobaXterm'
     }
   }
 };

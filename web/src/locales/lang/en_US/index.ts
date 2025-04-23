@@ -83,7 +83,7 @@ const enUS = {
     subTitle: 'Provide authorization service for JRebel hot deployment tool',
     description: 'JRebel is a powerful Java hot deployment tool that allows you to see code changes in real-time without restarting the application server.',
     usageNotice: 'Usage Instructions',
-    activationDescription: 'This service provides JRebel activation. Use the dedicated server address to activate JRebel.',
+    authorizationDescription: 'This service provides JRebel authorization. Use the dedicated server address to authorize JRebel.',
     serverConfig: 'Server Authorization Configuration',
     configurationDetails: 'Configuration Details',
     baseServerAddress: 'Base Server Address',
@@ -91,13 +91,13 @@ const enUS = {
     regenerateGuid: 'Regenerate GUID',
     regenerateGuidButton: 'Regenerate',
     configurationRules: 'Configuration Rules',
-    activationSteps: 'JRebel Activation Steps',
+    usageSteps: 'Usage Instructions',
     step1: 'Open your IDE (e.g., IntelliJ IDEA)',
     step2: 'Find the JRebel plugin settings',
-    step3: 'Choose "Team URL" activation method',
+    step3: 'Choose "Team URL" authorization method',
     step4: 'Enter the server address above in the URL field',
     step5: 'Enter any valid email address in the email field',
-    step6: 'Click "Activate" to complete the activation'
+    step6: 'Click "Authorize" to complete the authorization'
   },
   gitlab: {
     title: 'GitLab Authorization Service',
@@ -128,25 +128,39 @@ const enUS = {
       downloadStarted: 'License file download has started',
       downloadWarning: 'License generation may not be complete, please check download',
       downloadFailed: 'License generation failed, please try again'
+    },
+    instructionsTitle: 'Usage Instructions',
+    usageSteps: {
+      step1: 'Generate the license and download the ZIP file',
+      step2: 'Extract the ZIP file',
+      step3: 'Replace /opt/gitlab/embedded/service/gitlab-rails/.license_encryption_key.pub with the extracted .license_encryption_key.pub',
+      step4: 'Restart GitLab',
+      step5: 'Log in to your admin account and navigate to the "Admin Area" in the bottom left',
+      step6: 'Go to Settings -> General -> Add license',
+      step7: 'Upload the license.gitlab-license file',
+      step8: 'Click "Add license"'
     }
   },
   finalshell: {
     title: 'FinalShell Authorization Service',
-    subTitle: 'Generate registration code for FinalShell SSH tool',
-    description: 'FinalShell is an excellent SSH client tool. Fill in the form below to generate a registration code for FinalShell to unlock all professional features.',
+    subTitle: 'Generate authorization code for FinalShell SSH tool',
+    description: 'FinalShell is an excellent SSH client tool. Fill in the form below to generate an authorization code for FinalShell to unlock all professional features.',
     usageNotice: 'Usage Instructions',
-    warningDescription: 'The generated registration code is for learning and testing purposes only. Please support the original software.',
+    warningDescription: 'The generated authorization code is for learning and testing purposes only. Please support the original software.',
     machineCode: 'Machine Code',
     enterMachineCode: 'Please enter machine code',
     machineCodeRequired: 'Machine code is required',
-    generateButton: 'Generate Registration Code',
-    registrationSuccess: 'FinalShell Registration Code Generated Successfully',
+    generateButton: 'Generate Authorization Code',
+    registrationSuccess: 'FinalShell Authorization Code Generated Successfully',
     instructionsTitle: 'Usage Instructions',
     usageSteps: {
       step1: 'Open FinalShell software',
-      step2: 'Click "Help" > "Registration"',
-      step3: 'Enter the username and registration code generated above',
-      step4: 'Click "OK" to complete the registration'
+      step2: 'Click "Activate/Upgrade" in the top right corner',
+      step3: 'Select "Offline Activation"',
+      step4: 'Copy the machine code',
+      step5: 'Generate the authorization code',
+      step6: 'Paste the authorization code',
+      step7: 'Click "OK" to complete the activation'
     },
     versions: {
       advancedBelow396: 'Version < 3.9.6 Advanced Edition',
@@ -157,10 +171,10 @@ const enUS = {
   },
   mobaxterm: {
     title: 'MobaXterm Authorization Service',
-    subTitle: 'Generate activation code for MobaXterm Professional Edition',
-    description: 'MobaXterm is a powerful terminal tool with X server and network tools. Fill in the form below to generate an activation code for MobaXterm Professional Edition.',
+    subTitle: 'Generate authorization code for MobaXterm Professional Edition',
+    description: 'MobaXterm is a powerful terminal tool with X server and network tools. Fill in the form below to generate an authorization code for MobaXterm Professional Edition.',
     usageNotice: 'Usage Instructions',
-    warningDescription: 'The generated activation code is for learning and testing purposes only. Please support the original software.',
+    warningDescription: 'The generated authorization code is for learning and testing purposes only. Please support the original software.',
     form: {
       username: 'Username',
       usernamePlaceholder: 'Please enter username',
@@ -169,19 +183,18 @@ const enUS = {
       count: 'License Count',
       countPlaceholder: 'Please enter license count',
       countInvalid: 'Please enter a positive integer',
-      generateButton: 'Generate Activation Code',
+      generateButton: 'Generate Authorization Code',
       getAuthCode: 'Get Authorization Code'
     },
     success: {
-      title: 'MobaXterm Activation Code Generated Successfully',
-      downloadStarted: 'License file download has started'
+      title: 'MobaXterm Authorization Code Generated Successfully',
+      downloadStarted: 'License file "Custom.mxtpro" download has started'
     },
     instructionsTitle: 'Usage Instructions',
     usageSteps: {
-      step1: 'Open MobaXterm software',
-      step2: 'Click the "?" button in the top right, then select "Register"',
-      step3: 'Enter the username and activation code generated above',
-      step4: 'Click "OK" to complete activation'
+      step1: 'Generate the license file',
+      step2: 'Place the Custom.mxtpro file in your MobaXterm installation directory',
+      step3: 'Start MobaXterm'
     }
   }
 };

@@ -48,7 +48,7 @@ const StepContent = styled.div`
   flex: 1;
 `;
 
-const RegistrationCodeContainer = styled.div`
+const AuthorizationCodeContainer = styled.div`
   position: relative;
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
@@ -81,7 +81,7 @@ const CodeLabel = styled.div`
 const FinalShell: React.FC = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [registrationCodes, setRegistrationCodes] = useState<string[]>([]);
+  const [authorizationCodes, setAuthorizationCodes] = useState<string[]>([]);
   const [copying, setCopying] = useState<{[key: string]: boolean}>({});
   const [form] = Form.useForm();
 
@@ -89,7 +89,7 @@ const FinalShell: React.FC = () => {
     setLoading(true);
     try {
       const data = await finalshell.generateLicense(values.machineCode);
-      setRegistrationCodes(data);
+      setAuthorizationCodes(data);
     } catch (error) {
       console.error('生成许可证失败:', error);
     } finally {
@@ -119,8 +119,8 @@ const FinalShell: React.FC = () => {
     },
   ];
 
-  // 解析注册码字符串
-  const parseRegCode = (codeWithLabel: string): { label: string, code: string } => {
+  // 解析授权码字符串
+  const parseAuthCode = (codeWithLabel: string): { label: string, code: string } => {
     const matches = codeWithLabel.match(/(.*?):\s*(.*)/);
     if (matches && matches.length > 2) {
       return { label: matches[1], code: matches[2] };
@@ -180,17 +180,17 @@ const FinalShell: React.FC = () => {
         </Form>
       </FormWrapper>
 
-      {registrationCodes.length > 0 && (
+      {authorizationCodes.length > 0 && (
         <FormCard title={t('finalshell.registrationSuccess')}>
-          {registrationCodes.map((codeWithLabel, index) => {
-            const { label, code } = parseRegCode(codeWithLabel);
+          {authorizationCodes.map((codeWithLabel, index) => {
+            const { label, code } = parseAuthCode(codeWithLabel);
             const versionLabel = getVersionLabel(label);
             const copyKey = `code-${index}`;
 
             return (
               <div key={index} style={{marginBottom: 16}}>
                 <CodeLabel>{versionLabel}</CodeLabel>
-                <RegistrationCodeContainer>
+                <AuthorizationCodeContainer>
                   {code}
                   <CopyButton
                     size="small"
@@ -199,7 +199,7 @@ const FinalShell: React.FC = () => {
                     icon={copying[copyKey] ? <CheckOutlined /> : <CopyOutlined />}
                     onClick={() => copyToClipboard(copyKey, code)}
                   />
-                </RegistrationCodeContainer>
+                </AuthorizationCodeContainer>
               </div>
             );
           })}
@@ -222,6 +222,18 @@ const FinalShell: React.FC = () => {
         <StepItem>
           <StepNumber>4</StepNumber>
           <StepContent>{t('finalshell.usageSteps.step4')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>5</StepNumber>
+          <StepContent>{t('finalshell.usageSteps.step5')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>6</StepNumber>
+          <StepContent>{t('finalshell.usageSteps.step6')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>7</StepNumber>
+          <StepContent>{t('finalshell.usageSteps.step7')}</StepContent>
         </StepItem>
       </FormCard>
     </div>

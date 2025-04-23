@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Typography, Form, Button, Input, DatePicker, Alert, message } from 'antd';
+import { Typography, Form, Button, Input, DatePicker, Alert, message, Card } from 'antd';
 import styled from 'styled-components';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
@@ -12,6 +12,41 @@ const { Paragraph } = Typography;
 const FormWrapper = styled.div`
   max-width: 600px;
   margin-bottom: 32px;
+`;
+
+const FormCard = styled(Card)`
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 32px;
+  border: 1px solid #e5e7eb;
+  
+  .ant-card-head {
+    border-bottom: 1px solid #e5e7eb;
+  }
+`;
+
+const StepItem = styled.div`
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+`;
+
+const StepNumber = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background-color: #1890ff;
+  color: #fff;
+  border-radius: 50%;
+  margin-right: 12px;
+  font-size: 14px;
+  flex-shrink: 0;
+`;
+
+const StepContent = styled.div`
+  flex: 1;
 `;
 
 const GitLab: React.FC = () => {
@@ -141,6 +176,41 @@ const GitLab: React.FC = () => {
           </Form.Item>
         </Form>
       </FormWrapper>
+
+      <FormCard title={t('gitlab.instructionsTitle')}>
+        <StepItem>
+          <StepNumber>1</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step1')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>2</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step2')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>3</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step3')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>4</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step4')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>5</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step5')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>6</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step6')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>7</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step7')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>8</StepNumber>
+          <StepContent>{t('gitlab.usageSteps.step8')}</StepContent>
+        </StepItem>
+      </FormCard>
     </div>
   );
 };

@@ -23,7 +23,7 @@ A Go-based service for managing software license validation and authentication.
 
 ## Requirements
 
-- Go 1.21 or higher
+- Go 1.24 or higher
 - MySQL database (or SQLite for development)
 - Docker (optional, for containerized deployment)
 

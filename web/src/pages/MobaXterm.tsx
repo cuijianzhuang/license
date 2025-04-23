@@ -146,7 +146,7 @@ const MobaXterm: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'mobaxterm-license.txt';
+      a.download = 'Custom.mxtpro';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -287,10 +287,6 @@ const MobaXterm: React.FC = () => {
         <StepItem>
           <StepNumber>3</StepNumber>
           <StepContent>{t('mobaxterm.usageSteps.step3')}</StepContent>
-        </StepItem>
-        <StepItem>
-          <StepNumber>4</StepNumber>
-          <StepContent>{t('mobaxterm.usageSteps.step4')}</StepContent>
         </StepItem>
       </FormCard>
     </div>
