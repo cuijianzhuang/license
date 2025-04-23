@@ -10,7 +10,7 @@ A Go-based service for managing software license validation and authentication.
 ![GitHub Release](https://img.shields.io/github/v/release/nannanStrawberry314/license?color=brightgreen)
 ![Docker Pulls](https://img.shields.io/docker/pulls/raspberrycheese/license?color=blueviolet)
 
-[English](README.md) | [中文](README_CN.md)
+[简体中文](README_CN.md) | [繁體中文](README_TW.md) | [Русский](README_RU.md) | [English](README.md) | [日本語](README_JP.md) | [한국어](README_KR.md)
 
 ## Features
 
@@ -20,6 +20,7 @@ A Go-based service for managing software license validation and authentication.
 - Scheduled tasks with cron
 - Database storage with GORM (MySQL/SQLite support)
 - Secure encryption using RSA
+- Multilingual support (Simplified Chinese, Traditional Chinese, Russian, English, Japanese, Korean)
 
 ## Requirements
 
@@ -126,4 +127,6 @@ This project is provided "as is" without any warranties, expressed or implied. T
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nannanStrawberry314/license&type=Date)](https://www.star-history.com/#nannanStrawberry314/license&Date) 
+[![Star History Chart](https://api.star-history.com/svg?repos=nannanStrawberry314/license&type=Date)](https://www.star-history.com/#nannanStrawberry314/license&Date)
+
+[简体中文](README_CN.md) | [繁體中文](README_TW.md) | [Русский](README_RU.md) | [English](README.md) | [日本語](README_JP.md) | [한국어](README_KR.md) 

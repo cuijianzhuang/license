@@ -10,7 +10,7 @@
 ![GitHub Release](https://img.shields.io/github/v/release/nannanStrawberry314/license?color=brightgreen)
 ![Docker Pulls](https://img.shields.io/docker/pulls/raspberrycheese/license?color=blueviolet)
 
-[English](README.md) | [中文](README_CN.md)
+[简体中文](README_CN.md) | [繁體中文](README_TW.md) | [Русский](README_RU.md) | [English](README.md) | [日本語](README_JP.md) | [한국어](README_KR.md)
 
 ## 功能特点
 
@@ -20,6 +20,7 @@
 - 使用cron实现定时任务
 - 通过GORM支持数据库存储(MySQL/SQLite)
 - 采用RSA算法的安全加密
+- 多语言支持（简体中文、繁体中文、俄语、英语、日语、韩语）
 
 ## 系统要求
 

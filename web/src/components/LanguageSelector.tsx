@@ -20,6 +20,7 @@ const LanguageSelector: React.FC = () => {
       if (savedLanguage.startsWith('zh-TW') || savedLanguage === 'zh-Hant' || savedLanguage === 'zh_TW') lang = 'zh-TW';
       if (savedLanguage.startsWith('ja')) lang = 'ja';
       if (savedLanguage.startsWith('ko')) lang = 'ko';
+      if (savedLanguage.startsWith('ru')) lang = 'ru';
       
       setCurrentLanguage(lang);
       
@@ -36,6 +37,7 @@ const LanguageSelector: React.FC = () => {
       if (browserLang && browserLang.startsWith('zh-TW') || browserLang === 'zh-Hant') detectedLang = 'zh-TW';
       if (browserLang && (browserLang.startsWith('ja'))) detectedLang = 'ja';
       if (browserLang && (browserLang.startsWith('ko'))) detectedLang = 'ko';
+      if (browserLang && (browserLang.startsWith('ru'))) detectedLang = 'ru';
       
       setCurrentLanguage(detectedLang);
       i18n.changeLanguage(detectedLang);
@@ -63,6 +65,7 @@ const LanguageSelector: React.FC = () => {
     >
       <Option value="zh-CN">简体中文</Option>
       <Option value="zh-TW">繁體中文</Option>
+      <Option value="ru">Русский</Option>
       <Option value="en">English</Option>
       <Option value="ja">日本語</Option>
       <Option value="ko">한국어</Option>
