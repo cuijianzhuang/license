@@ -5,6 +5,16 @@ import { GlobalOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
+// Helper function to map language code to HTML lang attribute
+const mapToHtmlLang = (language: string): string => {
+  if (language.startsWith('zh-CN') || language === 'zh-Hans' || language === 'zh_CN') return 'zh-CN';
+  if (language.startsWith('zh-TW') || language === 'zh-Hant' || language === 'zh_TW') return 'zh-TW';
+  if (language.startsWith('ja')) return 'ja';
+  if (language.startsWith('ko')) return 'ko';
+  if (language.startsWith('ru')) return 'ru';
+  return 'en';
+};
+
 const LanguageSelector: React.FC = () => {
   const { i18n, t } = useTranslation();
   const [currentLanguage, setCurrentLanguage] = useState<string>('en'); // Default to English
@@ -28,6 +38,9 @@ const LanguageSelector: React.FC = () => {
       if (i18n.language !== lang) {
         i18n.changeLanguage(lang);
       }
+
+      // Ensure HTML lang attribute is correctly set
+      document.documentElement.lang = mapToHtmlLang(lang);
     } else {
       // Priority 2: Check browser language
       const browserLang = navigator.language || (navigator as any).userLanguage;
@@ -44,6 +57,9 @@ const LanguageSelector: React.FC = () => {
       
       // Save to localStorage for future visits
       localStorage.setItem('i18nextLng', detectedLang);
+
+      // Update HTML lang attribute
+      document.documentElement.lang = mapToHtmlLang(detectedLang);
     }
   }, [i18n]);
 
@@ -53,6 +69,9 @@ const LanguageSelector: React.FC = () => {
     
     // Save the selected language to localStorage
     localStorage.setItem('i18nextLng', value);
+
+    // Update HTML lang attribute
+    document.documentElement.lang = mapToHtmlLang(value);
   };
 
   return (

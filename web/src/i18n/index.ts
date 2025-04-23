@@ -24,6 +24,22 @@ const getSavedLanguage = () => {
     return undefined; // Let language detector decide
 };
 
+// Helper function to map i18n language code to HTML lang attribute
+const mapLanguageToHtmlLang = (language: string): string => {
+    if (language.startsWith('zh-CN') || language === 'zh-Hans' || language === 'zh_CN') return 'zh-CN';
+    if (language.startsWith('zh-TW') || language === 'zh-Hant' || language === 'zh_TW') return 'zh-TW';
+    if (language.startsWith('ja')) return 'ja';
+    if (language.startsWith('ko')) return 'ko';
+    if (language.startsWith('ru')) return 'ru';
+    return 'en';
+};
+
+// Function to update HTML lang attribute
+const updateHtmlLang = (language: string) => {
+    const htmlLang = mapLanguageToHtmlLang(language);
+    document.documentElement.lang = htmlLang;
+};
+
 // Configure i18next
 i18n
     // Detect user language
@@ -63,5 +79,13 @@ i18n
             caches: ['localStorage'] // Cache user language preference
         }
     });
+
+// Initialize HTML lang attribute with current language
+updateHtmlLang(i18n.language);
+
+// Add language change listener to update HTML lang attribute
+i18n.on('languageChanged', (language: string) => {
+    updateHtmlLang(language);
+});
 
 export default i18n; 

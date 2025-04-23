@@ -14,13 +14,24 @@ import JRebel from './pages/JRebel';
 import GlobalStyles from './styles/GlobalStyles';
 import { theme } from './styles/theme';
 
+// Helper function to map language code to HTML lang attribute
+const mapToHtmlLang = (language: string): string => {
+  if (language.startsWith('zh-CN') || language === 'zh-Hans' || language === 'zh_CN') return 'zh-CN';
+  if (language.startsWith('zh-TW') || language === 'zh-Hant' || language === 'zh_TW') return 'zh-TW';
+  if (language.startsWith('ja')) return 'ja';
+  if (language.startsWith('ko')) return 'ko';
+  if (language.startsWith('ru')) return 'ru';
+  return 'en';
+};
+
 const App: React.FC = () => {
   const { t, i18n } = useTranslation();
   
-  // Set page title based on current language
+  // Set page title and HTML lang attribute based on current language
   useEffect(() => {
     document.title = t('app.title');
-  }, [t]);
+    document.documentElement.lang = mapToHtmlLang(i18n.language);
+  }, [t, i18n.language]);
 
   // Get antd locale based on current language
   const getAntdLocale = () => {
