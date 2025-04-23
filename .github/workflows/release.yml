@@ -42,6 +42,7 @@ jobs:
       should_create_release: ${{ steps.check.outputs.should_create_release }}
       should_sync_to_public: ${{ steps.check.outputs.should_sync_to_public }}
       version: ${{ steps.get_version.outputs.version }}
+      build_version: ${{ steps.get_version.outputs.build_version }}
       docker_version: ${{ steps.get_version.outputs.docker_version }}
     steps:
       - name: Check out code
@@ -101,11 +102,13 @@ jobs:
           fi
           
           # 提取不带v前缀的版本号用于Docker镜像标签
-          DOCKER_VERSION=$(echo "$VERSION" | sed 's/^v//')
+          PURE_VERSION=$(echo "$VERSION" | sed 's/^v//')
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "docker_version=$DOCKER_VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION (Docker version: $DOCKER_VERSION)"
+          echo "build_version=$PURE_VERSION" >> $GITHUB_OUTPUT
+          echo "docker_version=$PURE_VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION (Build version: $PURE_VERSION)"
+          echo "Using version: $VERSION (Docker version: $PURE_VERSION)"
 
   # 1. 测试阶段
   test:
@@ -254,27 +257,27 @@ jobs:
           ls -la web/build/
           echo "These files will be embedded into the Go binary via //go:embed directive in main.go"
           
-          # 现在使用纯Go实现的SQLite，可以禁用CGO简化构建
+          DOCKER_VERSION=$(echo "$VERSION" | sed 's/^v//')
           
           # Linux amd64
           echo "Building for Linux AMD64..."
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.version }}" -o build/license-linux-amd64 ./main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.build_version }}" -o build/license-linux-amd64 ./main.go
           
           # Linux arm64
           echo "Building for Linux ARM64..."
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.version }}" -o build/license-linux-arm64 ./main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.build_version }}" -o build/license-linux-arm64 ./main.go
           
           # MacOS amd64
           echo "Building for MacOS AMD64..."
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.version }}" -o build/license-darwin-amd64 ./main.go
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.build_version }}" -o build/license-darwin-amd64 ./main.go
           
           # MacOS arm64
           echo "Building for MacOS ARM64..."
-          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.version }}" -o build/license-darwin-arm64 ./main.go
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.build_version }}" -o build/license-darwin-arm64 ./main.go
           
           # Windows amd64
           echo "Building for Windows AMD64..."
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.version }}" -o build/license-windows-amd64.exe ./main.go
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -X license/config.Version=${{ needs.pre_check.outputs.build_version }}" -o build/license-windows-amd64.exe ./main.go
           
           # 检查编译的二进制文件
           echo "Built binaries:"
