@@ -1,6 +1,6 @@
 # 라이선스 관리 서비스
 
-![GitHub commit activity](https://img.shields.io/github/commit-activity/t/nannanStrawberry314/license?color=blue)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/nannanStrawberry314/license/feture-go-v2?color=blue)
 ![GitHub forks](https://img.shields.io/github/forks/nannanStrawberry314/license?style=flat&color=brightgreen)
 ![GitHub stars](https://img.shields.io/github/stars/nannanStrawberry314/license?color=orange)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/nannanStrawberry314/license?color=red)
