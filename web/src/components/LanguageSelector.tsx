@@ -15,7 +15,11 @@ const LanguageSelector: React.FC = () => {
     const savedLanguage = localStorage.getItem('i18nextLng');
     
     if (savedLanguage) {
-      const lang = savedLanguage.startsWith('zh') ? 'zh' : 'en';
+      let lang = 'en';
+      if (savedLanguage.startsWith('zh')) lang = 'zh';
+      if (savedLanguage.startsWith('ja')) lang = 'ja';
+      if (savedLanguage.startsWith('ko')) lang = 'ko';
+      
       setCurrentLanguage(lang);
       
       // Ensure i18n language matches localStorage
@@ -25,7 +29,11 @@ const LanguageSelector: React.FC = () => {
     } else {
       // Priority 2: Check browser language
       const browserLang = navigator.language || (navigator as any).userLanguage;
-      const detectedLang = browserLang && browserLang.startsWith('zh') ? 'zh' : 'en';
+      let detectedLang = 'en';
+      
+      if (browserLang && browserLang.startsWith('zh')) detectedLang = 'zh';
+      if (browserLang && browserLang.startsWith('ja')) detectedLang = 'ja';
+      if (browserLang && browserLang.startsWith('ko')) detectedLang = 'ko';
       
       setCurrentLanguage(detectedLang);
       i18n.changeLanguage(detectedLang);
@@ -53,6 +61,8 @@ const LanguageSelector: React.FC = () => {
     >
       <Option value="zh">中文</Option>
       <Option value="en">English</Option>
+      <Option value="ja">日本語</Option>
+      <Option value="ko">한국어</Option>
     </Select>
   );
 };

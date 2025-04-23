@@ -5,12 +5,17 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 // Import language resources
 import enUS from '../locales/lang/en_US';
 import zhCN from '../locales/lang/zh_CN';
+import jaJP from '../locales/lang/ja_JP';
+import koKR from '../locales/lang/ko_KR';
 
 // Get saved language from localStorage or default to browser language
 const getSavedLanguage = () => {
   const savedLanguage = localStorage.getItem('i18nextLng');
   if (savedLanguage) {
-    return savedLanguage.startsWith('zh') ? 'zh' : 'en';
+    if (savedLanguage.startsWith('zh')) return 'zh';
+    if (savedLanguage.startsWith('ja')) return 'ja';
+    if (savedLanguage.startsWith('ko')) return 'ko';
+    return 'en';
   }
   return undefined; // Let language detector decide
 };
@@ -29,6 +34,12 @@ i18n
       },
       zh: {
         translation: zhCN
+      },
+      ja: {
+        translation: jaJP
+      },
+      ko: {
+        translation: koKR
       }
     },
     lng: getSavedLanguage(), // Try to use saved language first
