@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Drawer, Tooltip, Badge } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Layout, Menu, Button, Drawer, Tooltip } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
@@ -123,13 +123,24 @@ const MainLayout: React.FC = () => {
   const [version, setVersion] = useState<string>("");
   const [needUpdate, setNeedUpdate] = useState<boolean>(false);
   const [latestVersion, setLatestVersion] = useState<string>("");
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    // Fetch server version
+    // Only fetch once during component lifecycle
+    let isMounted = true;
+    
     const fetchVersion = async () => {
+      // Skip if already fetched
+      if (fetchedRef.current) return;
+      
+      // Mark as fetched immediately to prevent duplicate requests
+      fetchedRef.current = true;
+      
       try {
         const versionData = await server.getVersion();
-        if (versionData) {
+        
+        // Only update state if component is still mounted
+        if (isMounted && versionData) {
           setVersion(versionData.version);
           setNeedUpdate(versionData.needUpdate);
           setLatestVersion(versionData.latestVersion || "");
@@ -140,7 +151,12 @@ const MainLayout: React.FC = () => {
     };
 
     fetchVersion();
-  }, []);
+    
+    // Cleanup function to handle component unmounting
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - run once on mount
 
   useEffect(() => {
     setIsMobile(responsive.isMobile());
