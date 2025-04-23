@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"license/config"
 	finalshell "license/finalshell/api"
 	gitlab "license/gitlab/api"
 	jetbrainCode "license/jetbrains/code/api"
@@ -53,6 +54,12 @@ func SetupRouter(r *gin.RouterGroup) {
 		serverGroup.GET("/status", func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"status": true,
+			})
+		})
+		
+		serverGroup.GET("/version", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"version": config.GetVersion(),
 			})
 		})
 	}

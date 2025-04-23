@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import { responsive } from '../styles/theme';
 import LanguageSelector from '../components/LanguageSelector';
+import { server } from '../api';
 
 const { Header, Content } = Layout;
 
@@ -50,6 +51,16 @@ const LogoText = styled.span`
   color: #1890ff;
   font-size: 20px;
   font-weight: bold;
+  display: flex;
+  align-items: baseline;
+`;
+
+const VersionText = styled.span`
+  font-size: 11px;
+  font-weight: 400;
+  color: #7a9bcf;
+  margin-left: 4px;
+  opacity: 0.85;
 `;
 
 const StyledMenu = styled(Menu)`
@@ -91,6 +102,23 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(responsive.isMobile());
   const { t } = useTranslation();
+  const [version, setVersion] = useState<string>("");
+
+  useEffect(() => {
+    // Fetch server version
+    const fetchVersion = async () => {
+      try {
+        const versionData = await server.getVersion();
+        if (versionData) {
+          setVersion(versionData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch server version:', error);
+      }
+    };
+
+    fetchVersion();
+  }, []);
 
   useEffect(() => {
     setIsMobile(responsive.isMobile());
@@ -154,7 +182,10 @@ const MainLayout: React.FC = () => {
         />
         <LogoWrapper onClick={() => navigate('/')}>
           <LogoImage src="/logo.svg" alt="License" />
-          <LogoText>License</LogoText>
+          <LogoText>
+            License
+            {version && <VersionText>v{version}</VersionText>}
+          </LogoText>
         </LogoWrapper>
         <DesktopMenu $isMobile={isMobile}>
           <StyledMenu 
@@ -173,7 +204,10 @@ const MainLayout: React.FC = () => {
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <img src="/logo.svg" alt="License" style={{ height: '28px', marginRight: '8px' }} />
-            <span>License</span>
+            <span style={{ display: 'flex', alignItems: 'baseline' }}>
+              License
+              {version && <span style={{ fontSize: '11px', marginLeft: '4px', color: '#7a9bcf', opacity: 0.85 }}>v{version}</span>}
+            </span>
           </div>
         }
         placement="left"
