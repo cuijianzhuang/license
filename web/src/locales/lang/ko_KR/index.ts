@@ -165,8 +165,10 @@ const koKR = {
     versions: {
       advancedBelow396: '버전 < 3.9.6 고급 에디션',
       proBelow396: '버전 < 3.9.6 전문가 에디션',
-      advancedAbove396: '버전 >= 3.9.6 고급 에디션',
-      proAbove396: '버전 >= 3.9.6 전문가 에디션'
+      advancedAbove396: '3.9.6 <= 버전 < 4.5 고급 에디션',
+      proAbove396: '3.9.6 <= 버전 < 4.5 전문가 에디션',
+      advancedAbove45: '버전 >= 4.5 고급 에디션',
+      proAbove45: '버전 >= 4.5 전문가 에디션'
     }
   },
   mobaxterm: {

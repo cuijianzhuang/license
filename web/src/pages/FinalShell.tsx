@@ -92,7 +92,9 @@ const FinalShell: React.FC = () => {
     'finalshell.versions.advancedBelow396',
     'finalshell.versions.proBelow396',
     'finalshell.versions.advancedAbove396',
-    'finalshell.versions.proAbove396'
+    'finalshell.versions.proAbove396',
+    'finalshell.versions.advancedAbove45',
+    'finalshell.versions.proAbove45'
   ];
 
   const handleGenerateLicense = async (values: { machineCode: string }) => {

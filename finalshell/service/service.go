@@ -24,8 +24,10 @@ func keccak384Hash(msg string) string {
 // Returns an array of license codes in the following order:
 // [0] - License for Version < 3.9.6 Advanced Edition
 // [1] - License for Version < 3.9.6 Professional Edition
-// [2] - License for Version >= 3.9.6 Advanced Edition
-// [3] - License for Version >= 3.9.6 Professional Edition
+// [2] - License for 3.9.6 <= Version < 4.5 Advanced Edition
+// [3] - License for 3.9.6 <= Version < 4.5 Professional Edition
+// [4] - License for Version >= 4.5 Advanced Edition
+// [5] - License for Version >= 4.5 Professional Edition
 // Note: Version prefixes are no longer included in the returned strings.
 // Frontend must handle the display of version information.
 func GenerateLicense(machineCode string) []string {
@@ -34,9 +36,13 @@ func GenerateLicense(machineCode string) []string {
 	result = append(result, md5Hash("61305"+machineCode+"8552"))
 	// License for Version < 3.9.6 Professional Edition
 	result = append(result, md5Hash("2356"+machineCode+"13593"))
-	// License for Version >= 3.9.6 Advanced Edition
+	// License for 3.9.6 <= Version < 4.5 Advanced Edition
 	result = append(result, keccak384Hash(machineCode+"hSf(78cvVlS5E"))
-	// License for Version >= 3.9.6 Professional Edition
+	// License for3.9.6 <= Version < 4.5 Professional Edition
 	result = append(result, keccak384Hash(machineCode+"FF3Go(*Xvbb5s2"))
+	// License for Version >= 4.5 Advanced Edition
+	result = append(result, keccak384Hash(machineCode+"wcegS3gzA$"))
+	// License for Version >= 4.5 Professional Edition
+	result = append(result, keccak384Hash(machineCode+"b(xxkHn%z);x"))
 	return result
 }

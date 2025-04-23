@@ -166,8 +166,10 @@ const enUS = {
     versions: {
       advancedBelow396: 'Version < 3.9.6 Advanced Edition',
       proBelow396: 'Version < 3.9.6 Professional Edition',
-      advancedAbove396: 'Version >= 3.9.6 Advanced Edition',
-      proAbove396: 'Version >= 3.9.6 Professional Edition'
+      advancedAbove396: '3.9.6 <= Version < 4.5 Advanced Edition',
+      proAbove396: '3.9.6 <= Version < 4.5 Professional Edition',
+      advancedAbove45: 'Version >= 4.5 Advanced Edition',
+      proAbove45: 'Version >= 4.5 Professional Edition'
     }
   },
   mobaxterm: {
