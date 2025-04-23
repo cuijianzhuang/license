@@ -109,6 +109,33 @@ const enUS = {
       downloadFailed: 'License generation failed, please try again'
     }
   },
+  mobaxterm: {
+    title: 'MobaXterm Authorization Service',
+    subTitle: 'Generate activation code for MobaXterm Professional Edition',
+    description: 'MobaXterm is a powerful terminal tool with X server and network tools. Fill in the form below to generate an activation code for MobaXterm Professional Edition.',
+    warning: 'Important Notice',
+    warningDescription: 'The generated activation code is for learning and testing purposes only. Please support the original software.',
+    form: {
+      username: 'Username',
+      usernamePlaceholder: 'Please enter username',
+      version: 'Software Version',
+      versionPlaceholder: 'Please select version',
+      count: 'License Count',
+      countPlaceholder: 'Please enter license count',
+      generateButton: 'Generate Activation Code'
+    },
+    success: {
+      title: 'MobaXterm Activation Code Generated Successfully',
+      downloadStarted: 'License file download has started'
+    },
+    instructionsTitle: 'Usage Instructions',
+    usageSteps: {
+      step1: 'Open MobaXterm software',
+      step2: 'Click the "?" button in the top right, then select "Register"',
+      step3: 'Enter the username and activation code generated above',
+      step4: 'Click "OK" to complete activation'
+    }
+  },
   jrebel: {
     title: 'JRebel Authorization Service',
     subTitle: 'Provide authorization service for JRebel hot deployment tool',

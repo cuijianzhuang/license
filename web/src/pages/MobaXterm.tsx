@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Typography, Form, Button, Input, Select, Alert } from 'antd';
+import { Typography, Form, Button, Input, Select, Alert, message, Card } from 'antd';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../components/PageHeader';
-import ResultCard from '../components/ResultCard';
 import { mobaxterm } from '../api';
-import { MobaXtermLicense } from '../types';
 
 const { Paragraph } = Typography;
 const { Option } = Select;
@@ -14,7 +13,48 @@ const FormWrapper = styled.div`
   margin-bottom: 32px;
 `;
 
+const FormCard = styled(Card)`
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 32px;
+  border: 1px solid #e5e7eb;
+  
+  .ant-card-head {
+    border-bottom: 1px solid #e5e7eb;
+  }
+`;
+
+const StepItem = styled.div`
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+`;
+
+const StepNumber = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background-color: #1890ff;
+  color: #fff;
+  border-radius: 50%;
+  margin-right: 12px;
+  font-size: 14px;
+  flex-shrink: 0;
+`;
+
+const StepContent = styled.div`
+  flex: 1;
+`;
+
 const versions = [
+  '23.6',
+  '23.5',
+  '23.4',
+  '23.3',
+  '23.2',
+  '23.1',
   '23.0',
   '22.3',
   '22.2',
@@ -36,17 +76,40 @@ const versions = [
 ];
 
 const MobaXterm: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [license, setLicense] = useState<MobaXtermLicense | null>(null);
   const [form] = Form.useForm();
 
-  const handleGenerateLicense = async (values: { username: string; version: string }) => {
+  const handleGenerateLicense = async (values: { 
+    username: string; 
+    version: string;
+    count: string;
+  }) => {
     setLoading(true);
     try {
-      const data = await mobaxterm.generateLicense(values.username, values.version);
-      setLicense(data);
+      // Create FormData
+      const formData = new FormData();
+      formData.append('name', values.username);
+      formData.append('version', values.version);
+      formData.append('count', values.count);
+
+      // Get file blob response
+      const blob = await mobaxterm.generateLicense(formData);
+      
+      // Create download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mobaxterm-license.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      message.success(t('mobaxterm.success.downloadStarted'));
     } catch (error) {
-      console.error('生成许可证失败:', error);
+      console.error('Failed to generate license:', error);
+      message.error(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -55,29 +118,29 @@ const MobaXterm: React.FC = () => {
   const breadcrumbs = [
     {
       path: '/',
-      breadcrumbName: '首页',
+      breadcrumbName: t('nav.home'),
     },
     {
       path: '',
-      breadcrumbName: 'MobaXterm 激活工具',
+      breadcrumbName: t('nav.mobaxterm'),
     },
   ];
 
   return (
     <div>
       <PageHeader
-        title="MobaXterm 激活工具"
-        subTitle="生成MobaXterm专业版激活码"
+        title={t('mobaxterm.title')}
+        subTitle={t('mobaxterm.subTitle')}
         breadcrumbs={breadcrumbs}
       />
 
       <Paragraph>
-        MobaXterm是一款功能强大的终端工具，填写以下表单生成MobaXterm的专业版激活码。
+        {t('mobaxterm.description')}
       </Paragraph>
 
       <Alert
-        message="注意事项"
-        description="生成的激活码仅供学习和测试使用，请支持正版软件。"
+        message={t('mobaxterm.warning')}
+        description={t('mobaxterm.warningDescription')}
         type="warning"
         showIcon
         style={{ marginBottom: 24 }}
@@ -87,20 +150,20 @@ const MobaXterm: React.FC = () => {
         <Form form={form} onFinish={handleGenerateLicense} layout="vertical">
           <Form.Item
             name="username"
-            label="用户名"
-            rules={[{ required: true, message: '请输入用户名' }]}
+            label={t('mobaxterm.form.username')}
+            rules={[{ required: true, message: t('mobaxterm.form.usernamePlaceholder') }]}
             initialValue="MobaXterm User"
           >
-            <Input placeholder="请输入用户名" />
+            <Input placeholder={t('mobaxterm.form.usernamePlaceholder')} />
           </Form.Item>
 
           <Form.Item
             name="version"
-            label="软件版本"
-            rules={[{ required: true, message: '请选择MobaXterm版本' }]}
+            label={t('mobaxterm.form.version')}
+            rules={[{ required: true, message: t('mobaxterm.form.versionPlaceholder') }]}
             initialValue={versions[0]}
           >
-            <Select placeholder="请选择版本">
+            <Select placeholder={t('mobaxterm.form.versionPlaceholder')}>
               {versions.map((version) => (
                 <Option key={version} value={version}>
                   {version}
@@ -109,40 +172,41 @@ const MobaXterm: React.FC = () => {
             </Select>
           </Form.Item>
 
+          <Form.Item
+            name="count"
+            label={t('mobaxterm.form.count')}
+            rules={[{ required: true, message: t('mobaxterm.form.countPlaceholder') }]}
+            initialValue="1000"
+          >
+            <Input placeholder={t('mobaxterm.form.countPlaceholder')} />
+          </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>
-              生成激活码
+              {t('mobaxterm.form.generateButton')}
             </Button>
           </Form.Item>
         </Form>
       </FormWrapper>
 
-      {license && (
-        <ResultCard
-          title="MobaXterm激活码生成成功"
-          data={{
-            '用户名': license.username || '未指定',
-            '版本': license.version || '未指定',
-            '激活码': license.license,
-          }}
-          fileName="mobaxterm-license.txt"
-        />
-      )}
-
-      <Alert
-        message="使用说明"
-        description={
-          <div>
-            <p>1. 打开MobaXterm软件</p>
-            <p>2. 点击右上角的"?"按钮，然后选择"Register"</p>
-            <p>3. 输入上面生成的用户名和激活码</p>
-            <p>4. 点击"OK"完成激活</p>
-          </div>
-        }
-        type="info"
-        showIcon
-        style={{ marginTop: 24 }}
-      />
+      <FormCard title={t('mobaxterm.instructionsTitle')}>
+        <StepItem>
+          <StepNumber>1</StepNumber>
+          <StepContent>{t('mobaxterm.usageSteps.step1')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>2</StepNumber>
+          <StepContent>{t('mobaxterm.usageSteps.step2')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>3</StepNumber>
+          <StepContent>{t('mobaxterm.usageSteps.step3')}</StepContent>
+        </StepItem>
+        <StepItem>
+          <StepNumber>4</StepNumber>
+          <StepContent>{t('mobaxterm.usageSteps.step4')}</StepContent>
+        </StepItem>
+      </FormCard>
     </div>
   );
 };

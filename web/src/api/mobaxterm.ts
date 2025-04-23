@@ -2,16 +2,17 @@ import api from './config';
 import { MobaXtermLicense } from '../types';
 
 /**
- * 生成MobaXterm许可证
- * @param username 用户名
- * @param version 版本号
+ * Generate MobaXterm license
+ * @param formData Form data containing username, version, count
+ * @returns File stream for the license
  */
 export const generateLicense = async (
-  username: string, 
-  version: string
-): Promise<MobaXtermLicense> => {
-  return api.post<MobaXtermLicense>('/mobaxterm/generate', { 
-    username,
-    version
+  formData: FormData
+): Promise<Blob> => {
+  return api.post('/mobaxterm/generate', formData, {
+    responseType: 'blob',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   });
 }; 

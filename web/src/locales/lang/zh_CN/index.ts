@@ -109,6 +109,33 @@ const zhCN = {
       downloadFailed: '许可证生成失败，请重试'
     }
   },
+  mobaxterm: {
+    title: 'MobaXterm 授权服务',
+    subTitle: '生成MobaXterm专业版激活码',
+    description: 'MobaXterm是一款功能强大的终端工具，集成X服务器和网络工具。填写以下表单生成MobaXterm专业版激活码。',
+    warning: '注意事项',
+    warningDescription: '生成的激活码仅供学习和测试使用，请支持正版软件。',
+    form: {
+      username: '用户名',
+      usernamePlaceholder: '请输入用户名',
+      version: '软件版本',
+      versionPlaceholder: '请选择版本',
+      count: '授权数量',
+      countPlaceholder: '请输入授权数量',
+      generateButton: '生成激活码'
+    },
+    success: {
+      title: 'MobaXterm激活码生成成功',
+      downloadStarted: '许可证文件下载已开始'
+    },
+    instructionsTitle: '使用说明',
+    usageSteps: {
+      step1: '打开MobaXterm软件',
+      step2: '点击右上角的"?"按钮，然后选择"Register"',
+      step3: '输入上面生成的用户名和激活码',
+      step4: '点击"确定"完成激活'
+    }
+  },
   jrebel: {
     title: 'JRebel授权服务',
     subTitle: '为JRebel热部署工具提供授权服务',
