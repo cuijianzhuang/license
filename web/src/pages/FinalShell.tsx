@@ -55,10 +55,17 @@ const AuthorizationCodeContainer = styled.div`
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
-  margin-bottom: 16px;
+  padding-right: 50px;
+  margin-bottom: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   overflow-wrap: break-word;
   word-break: break-all;
+  
+  @media (max-width: 768px) {
+    padding: 12px;
+    padding-right: 40px;
+    font-size: 12px;
+  }
 `;
 
 const CopyButton = styled(Button)`
@@ -66,11 +73,24 @@ const CopyButton = styled(Button)`
   top: 8px;
   right: 8px;
   opacity: 0.8;
-  z-index: 2;
+  z-index: 10;
   
   &:hover {
     opacity: 1;
   }
+  
+  @media (max-width: 768px) {
+    padding: 0 8px;
+    height: 24px;
+    font-size: 12px;
+  }
+`;
+
+const CodeContainer = styled.div`
+  position: relative;
+  margin-bottom: 16px;
+  overflow: hidden;
+  isolation: isolate;
 `;
 
 const CodeLabel = styled.div`
@@ -180,16 +200,18 @@ const FinalShell: React.FC = () => {
             return (
               <div key={index} style={{marginBottom: 16}}>
                 <CodeLabel>{t(versionLabelKey)}</CodeLabel>
-                <AuthorizationCodeContainer>
-                  {code}
-                  <CopyButton
-                    size="small"
-                    type="primary"
-                    ghost
-                    icon={copying[copyKey] ? <CheckOutlined /> : <CopyOutlined />}
-                    onClick={() => copyToClipboard(copyKey, code)}
-                  />
-                </AuthorizationCodeContainer>
+                <CodeContainer>
+                  <AuthorizationCodeContainer>
+                    {code}
+                    <CopyButton
+                      size="small"
+                      type="primary"
+                      ghost
+                      icon={copying[copyKey] ? <CheckOutlined /> : <CopyOutlined />}
+                      onClick={() => copyToClipboard(copyKey, code)}
+                    />
+                  </AuthorizationCodeContainer>
+                </CodeContainer>
               </div>
             );
           })}
