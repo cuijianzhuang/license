@@ -167,7 +167,7 @@ func (controller *LeasesController) ValidateHandler(c *gin.Context) {
 		Features:              "{}",
 		GroupType:             constant.GroupType,
 		StatusCode:            constant.StatusCode,
-		Company:               constant.COMPANY,
+		Company:               constant.Company,
 		CanGetLease:           true,
 		LicenseType:           "1",
 		EvaluationLicense:     false,
