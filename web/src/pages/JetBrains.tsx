@@ -163,8 +163,9 @@ const JetBrains: React.FC = () => {
 
   // Get browser's host address when component mounts
   useEffect(() => {
+    const protocol = window.location.protocol;
     const host = window.location.host;
-    setServerAddress(`http://${host}`);
+    setServerAddress(`${protocol}//${host}`);
   }, []);
   
   // Reset form and clear results when activation method changes

@@ -93,8 +93,9 @@ const JRebel: React.FC = () => {
   
   // 生成GUID和设置地址
   const generateAndSetAddresses = () => {
+    const protocol = window.location.protocol;
     const host = window.location.host;
-    const baseAddress = `http://${host}`;
+    const baseAddress = `${protocol}//${host}`;
     setServerAddress(baseAddress);
     
     // 生成一个随机的GUID
