@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"license/config"
 	"license/logger"
+	"license/utils/useragent"
 	"log"
 	"math/rand"
 	"net/http"
@@ -19,26 +20,9 @@ import (
 	"os"
 )
 
-// List of common User-Agent strings
-var userAgents = []string{
-	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
-	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15",
-	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
-	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
-	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
-	"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0",
-	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36 Edg/101.0.1210.39",
-	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 OPR/86.0.4363.59",
-}
-
 // Initialize random seed
 func init() {
 	rand.Seed(time.Now().UnixNano())
-}
-
-// getRandomUserAgent returns a randomly selected user agent from the list
-func getRandomUserAgent() string {
-	return userAgents[rand.Intn(len(userAgents))]
 }
 
 // FetchVersions fetches MobaXterm version numbers from the website
@@ -55,13 +39,11 @@ func FetchVersions() ([]string, error) {
 		return nil, err
 	}
 
-	// Set random User-Agent
-	req.Header.Set("User-Agent", getRandomUserAgent())
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Cache-Control", "max-age=0")
+	// Get and set random User-Agent along with standard headers
+	headers := useragent.GetRandomWithAcceptHeaders()
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 
 	// Send the request
 	resp, err := client.Do(req)

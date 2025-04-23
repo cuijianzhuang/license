@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Drawer } from 'antd';
+import { Layout, Menu, Button, Drawer, Tooltip, Badge } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,8 @@ import {
   BranchesOutlined,
   CodeSandboxOutlined,
   HomeOutlined,
-  DesktopOutlined
+  DesktopOutlined,
+  UpCircleOutlined
 } from '@ant-design/icons';
 import { responsive } from '../styles/theme';
 import LanguageSelector from '../components/LanguageSelector';
@@ -63,6 +64,16 @@ const VersionText = styled.span`
   opacity: 0.85;
 `;
 
+const UpdateTooltip = styled.div`
+  font-size: 12px;
+  line-height: 1.5;
+  
+  .version {
+    color: #52c41a;
+    font-weight: 500;
+  }
+`;
+
 const StyledMenu = styled(Menu)`
   flex: 1;
   border-bottom: none;
@@ -96,6 +107,13 @@ const HeaderControls = styled.div`
   margin-left: auto;
 `;
 
+const UpdateIcon = styled(UpCircleOutlined)`
+  color: #52c41a;
+  font-size: 14px;
+  margin-left: 4px;
+  cursor: pointer;
+`;
+
 const MainLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -103,6 +121,8 @@ const MainLayout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(responsive.isMobile());
   const { t } = useTranslation();
   const [version, setVersion] = useState<string>("");
+  const [needUpdate, setNeedUpdate] = useState<boolean>(false);
+  const [latestVersion, setLatestVersion] = useState<string>("");
 
   useEffect(() => {
     // Fetch server version
@@ -110,7 +130,9 @@ const MainLayout: React.FC = () => {
       try {
         const versionData = await server.getVersion();
         if (versionData) {
-          setVersion(versionData);
+          setVersion(versionData.version);
+          setNeedUpdate(versionData.needUpdate);
+          setLatestVersion(versionData.latestVersion || "");
         }
       } catch (error) {
         console.error('Failed to fetch server version:', error);
@@ -130,6 +152,12 @@ const MainLayout: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // 处理点击版本更新提示的事件
+  const handleUpdateClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 防止触发Logo点击事件
+    window.open('https://github.com/nannanStrawberry314/license/releases/latest', '_blank');
+  };
 
   const menuItems = [
     {
@@ -171,6 +199,15 @@ const MainLayout: React.FC = () => {
     }
   };
 
+  // 版本更新提示内容
+  const updateTooltipContent = (
+    <UpdateTooltip>
+      发现新版本 <span className="version">v{latestVersion}</span> 可用
+      <br />
+      点击查看更新详情
+    </UpdateTooltip>
+  );
+
   return (
     <StyledLayout>
       <StyledHeader>
@@ -184,7 +221,16 @@ const MainLayout: React.FC = () => {
           <LogoImage src="/logo.svg" alt="License" />
           <LogoText>
             License
-            {version && <VersionText>v{version}</VersionText>}
+            {version && (
+              <>
+                <VersionText>v{version}</VersionText>
+                {needUpdate && (
+                  <Tooltip title={updateTooltipContent} placement="bottom">
+                    <UpdateIcon onClick={handleUpdateClick} />
+                  </Tooltip>
+                )}
+              </>
+            )}
           </LogoText>
         </LogoWrapper>
         <DesktopMenu $isMobile={isMobile}>
@@ -206,7 +252,19 @@ const MainLayout: React.FC = () => {
             <img src="/logo.svg" alt="License" style={{ height: '28px', marginRight: '8px' }} />
             <span style={{ display: 'flex', alignItems: 'baseline' }}>
               License
-              {version && <span style={{ fontSize: '11px', marginLeft: '4px', color: '#7a9bcf', opacity: 0.85 }}>v{version}</span>}
+              {version && (
+                <>
+                  <span style={{ fontSize: '11px', marginLeft: '4px', color: '#7a9bcf', opacity: 0.85 }}>v{version}</span>
+                  {needUpdate && (
+                    <Tooltip title={updateTooltipContent} placement="bottom">
+                      <UpCircleOutlined 
+                        style={{ color: '#52c41a', fontSize: '14px', marginLeft: '4px', cursor: 'pointer' }} 
+                        onClick={handleUpdateClick}
+                      />
+                    </Tooltip>
+                  )}
+                </>
+              )}
             </span>
           </div>
         }

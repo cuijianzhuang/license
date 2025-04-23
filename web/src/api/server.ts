@@ -1,19 +1,37 @@
 import axios from 'axios';
 
-interface ServerVersion {
+interface ServerVersionResponse {
   version: string;
+  needUpdate: boolean;
+  latestVersion?: string;
+}
+
+/**
+ * 版本信息接口
+ */
+export interface VersionInfo {
+  version: string;
+  needUpdate: boolean;
+  latestVersion?: string;
 }
 
 /**
  * 获取服务器版本信息
- * @returns Promise<string> 包含版本号的Promise
+ * @returns Promise<VersionInfo> 包含版本信息的Promise
  */
-export const getVersion = async (): Promise<string> => {
+export const getVersion = async (): Promise<VersionInfo> => {
   try {
-    const response = await axios.get<ServerVersion>('/api/server/version');
-    return response.data.version;
+    const response = await axios.get<ServerVersionResponse>('/api/server/version');
+    return {
+      version: response.data.version,
+      needUpdate: response.data.needUpdate,
+      latestVersion: response.data.latestVersion
+    };
   } catch (error) {
     console.error('Failed to fetch server version:', error);
-    return '';
+    return {
+      version: '',
+      needUpdate: false
+    };
   }
 }; 
