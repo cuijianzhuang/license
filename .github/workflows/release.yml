@@ -20,11 +20,6 @@ on:
         required: false
         type: boolean
         default: false
-      sync_to_public:
-        description: 'Sync release to public repository'
-        required: false
-        type: boolean
-        default: true
 
 # 使用concurrency确保同时只有一个工作流运行
 concurrency:
@@ -40,7 +35,6 @@ jobs:
       should_run_full_workflow: ${{ steps.check.outputs.should_run }}
       is_tag_or_release: ${{ steps.check.outputs.is_tag_or_release }}
       should_create_release: ${{ steps.check.outputs.should_create_release }}
-      should_sync_to_public: ${{ steps.check.outputs.should_sync_to_public }}
       version: ${{ steps.get_version.outputs.version }}
       build_version: ${{ steps.get_version.outputs.build_version }}
       docker_version: ${{ steps.get_version.outputs.docker_version }}
@@ -62,7 +56,6 @@ jobs:
             echo "should_run=true" >> $GITHUB_OUTPUT
             echo "is_tag_or_release=true" >> $GITHUB_OUTPUT
             echo "should_create_release=true" >> $GITHUB_OUTPUT
-            echo "should_sync_to_public=true" >> $GITHUB_OUTPUT
           # 如果是手动触发且指定构建Docker，则运行完整工作流
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "This is a manual trigger - will run full workflow"
@@ -77,17 +70,11 @@ jobs:
             else
               echo "should_create_release=false" >> $GITHUB_OUTPUT
             fi
-            if [[ "${{ github.event.inputs.sync_to_public }}" == "true" ]]; then
-              echo "should_sync_to_public=true" >> $GITHUB_OUTPUT
-            else
-              echo "should_sync_to_public=false" >> $GITHUB_OUTPUT
-            fi
           else
             echo "This is an unexpected event - will not run"
             echo "should_run=false" >> $GITHUB_OUTPUT
             echo "is_tag_or_release=false" >> $GITHUB_OUTPUT
             echo "should_create_release=false" >> $GITHUB_OUTPUT
-            echo "should_sync_to_public=false" >> $GITHUB_OUTPUT
           fi
       
       - name: Get version
@@ -471,44 +458,3 @@ jobs:
           makeLatest: true
           replacesArtifacts: true
           bodyFile: release_body.md
-          
-      # 同步发布到公开仓库，只在手动触发时执行，不在tag推送时执行
-      - name: Sync Release to Public Repository
-        if: needs.pre_check.outputs.should_sync_to_public == 'true' && !startsWith(github.ref, 'refs/tags/')
-        env:
-          # 必须使用有权限访问目标仓库的个人访问令牌(PAT)
-          # github.token无法访问其他仓库，即使在同一组织内
-          GH_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
-          RELEASE_TAG: ${{ needs.pre_check.outputs.version }}
-          BUILD_DIR: ${{ github.workspace }}/build
-          BODY_FILE: ${{ github.workspace }}/release_body.md
-        run: |
-          echo "Syncing release to public repository..."
-          
-          # 确保我们有足够的权限使用GitHub CLI
-          gh auth status
-          
-          # 检查目标仓库是否存在相同的tag
-          echo "Checking if tag exists in public repository..."
-          if gh api repos/${{ secrets.PUBLIC_REPO }}/releases/tags/$RELEASE_TAG --silent; then
-            echo "Release with tag $RELEASE_TAG already exists in public repository, will update it"
-            # 获取已存在release的ID
-            RELEASE_ID=$(gh api repos/${{ secrets.PUBLIC_REPO }}/releases/tags/$RELEASE_TAG --jq '.id')
-            
-            # 删除现有release (但保留tag)
-            echo "Deleting existing release..."
-            gh api -X DELETE repos/${{ secrets.PUBLIC_REPO }}/releases/$RELEASE_ID
-          else
-            echo "Release doesn't exist in public repository, will create a new one"
-          fi
-          
-          # 创建新release
-          echo "Creating release in public repository..."
-          gh release create $RELEASE_TAG \
-            --repo ${{ secrets.PUBLIC_REPO }} \
-            --title "$RELEASE_TAG" \
-            --notes-file $BODY_FILE \
-            $BUILD_DIR/*
-          
-          echo "Release successfully synced to ${{ secrets.PUBLIC_REPO }} repository!"
-
