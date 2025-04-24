@@ -446,8 +446,8 @@ jobs:
           tags: |
             ${{ secrets.HUB_USER }}/${{ secrets.HUB_REPO }}:${{ needs.pre_check.outputs.docker_version }}
             ${{ secrets.HUB_USER }}/${{ secrets.HUB_REPO }}:latest
-            ghcr.io/${{ github.repository }}:${{ needs.pre_check.outputs.docker_version }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):${{ needs.pre_check.outputs.docker_version }}
+            ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]'):latest
           platforms: linux/amd64,linux/arm64
           build-args: |
             VERSION=${{ needs.pre_check.outputs.docker_version }}
