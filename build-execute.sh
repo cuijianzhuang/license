@@ -12,7 +12,7 @@ VERSION=$(echo $VERSION | sed 's/^v//')
 echo "Using version: $VERSION"
 
 # 生成随机哈希值 (8位字母数字组合)
-HASH=$(cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 8 | head -n 1)
+HASH=$(openssl rand -hex 4)
 echo "Using hash: $HASH"
 
 # 创建 build 目录，如果不存在的话
