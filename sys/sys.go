@@ -4,7 +4,7 @@ package sys
 var Version = "0.0.1"
 
 // Hash is the hash of commit hash
-var Hash = "98e6fc08"
+var Hash = "6eb5abee"
 
 // Arch is the architecture of the build
 var Arch = "linux/amd64"

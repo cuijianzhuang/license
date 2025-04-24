@@ -99,7 +99,7 @@ jobs:
           echo "Using version: $VERSION (Docker version: $PURE_VERSION)"
           
           # 获取当前提交的SHA哈希值
-          BUILD_HASH=$(git rev-parse --short=12 HEAD)
+          BUILD_HASH=$(cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 8 | head -n 1)
           echo "build_hash=$BUILD_HASH" >> $GITHUB_OUTPUT
           echo "Using hash: $BUILD_HASH"
 

@@ -9,12 +9,14 @@ cd ../
 VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.1")
 # 如果版本号以'v'开头，则去除这个'v'
 VERSION=$(echo $VERSION | sed 's/^v//')
+echo "Using version: $VERSION"
+
+# 生成随机哈希值 (8位字母数字组合)
+HASH=$(cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 8 | head -n 1)
+echo "Using hash: $HASH"
 
 # 创建 build 目录，如果不存在的话
 mkdir -p build
-
-# 获取Git提交的哈希值
-HASH=$(git rev-parse --short=12 HEAD)
 
 # Linux amd64
 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X license/sys.Version=${VERSION} -X license/sys.Hash=${HASH} -X license/sys.Arch=linux/amd64" -o build/license-linux-amd64 .
