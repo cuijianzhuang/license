@@ -33,6 +33,8 @@ func (ctrl *Controller) GetVersion(c *gin.Context) {
 
 	c.JSON(200, VersionResponse{
 		Version:       currentVersion,
+		Hash:          sys.GetHash(),
+		Arch:          sys.GetArch(),
 		NeedUpdate:    needUpdate,
 		LatestVersion: latestVersion,
 	})

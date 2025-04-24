@@ -90,10 +90,7 @@ func GetConfig() *Config {
 
 		// If you just want to check the version information, return a simple default configuration without outputting the initialization log
 		if isVersionMode {
-			return &Config{
-				HttpHost: "0.0.0.0",
-				HttpPort: 5000,
-			}
+			return &Config{}
 		}
 
 		logger.Info("Config is not initialized")

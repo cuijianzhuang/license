@@ -24,7 +24,7 @@ func main() {
 	versionFlag := flag.Bool("version", false, "Print version information and exit")
 	flag.Parse()
 
-	versionInfo := fmt.Sprintf("License v%s commit(%s) %s", sys.Version, sys.Hash, sys.Arch)
+	versionInfo := fmt.Sprintf("License v%s build(%s) %s", sys.Version, sys.Hash, sys.Arch)
 
 	// If the version flag is specified, output version information from the constant and exit immediately
 	if *versionFlag {

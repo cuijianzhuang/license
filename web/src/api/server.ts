@@ -2,6 +2,8 @@ import api from "./config";
 
 interface ServerVersionResponse {
   version: string;
+  hash: string;
+  arch: string;
   needUpdate: boolean;
   latestVersion?: string;
 }
@@ -11,6 +13,8 @@ interface ServerVersionResponse {
  */
 export interface VersionInfo {
   version: string;
+  hash: string;
+  arch: string;
   needUpdate: boolean;
   latestVersion?: string;
 }
@@ -32,6 +36,8 @@ export const getVersion = async (queryParam?: string): Promise<VersionInfo> => {
     });
     return {
       version: response.version,
+      hash: response.hash,
+      arch: response.arch,
       needUpdate: response.needUpdate,
       latestVersion: response.latestVersion
     };
@@ -39,6 +45,8 @@ export const getVersion = async (queryParam?: string): Promise<VersionInfo> => {
     console.error('Failed to fetch server version:', error);
     return {
       version: '',
+      hash: '',
+      arch: '',
       needUpdate: false
     };
   }
