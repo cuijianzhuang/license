@@ -17,8 +17,9 @@ func NewLicenseServerController() *LicenseServerController {
 
 // LicenseServerRule generates a license handling function
 func (controller *LicenseServerController) LicenseServerRule(c *gin.Context) {
-	codePower := util.GeneratePowerResult(util.Fake.CodeCert, util.Fake.CodeRootCert)
-	serverPower := util.GeneratePowerResult(util.Fake.ServerCert, util.Fake.ServerRootCert)
+	fakeCert := util.GetFake()
+	codePower := util.GeneratePowerResult(fakeCert.CodeCert, fakeCert.CodeRootCert)
+	serverPower := util.GeneratePowerResult(fakeCert.ServerCert, fakeCert.ServerRootCert)
 
 	// Construct the result
 	var result strings.Builder

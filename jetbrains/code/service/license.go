@@ -89,8 +89,9 @@ func GenerateLicense(licenseeName, effectiveDate string, codes []string) (string
 		return "", err
 	}
 	licensePartBase64 := base64.StdEncoding.EncodeToString(licensePartJSON)
-	signatureBase64 := signWithRSA(util.Fake.PrivateKey, licensePartJSON)
-	cert := util.Fake.CodeCert
+	fakeCert := util.GetFake()
+	signatureBase64 := signWithRSA(fakeCert.PrivateKey, licensePartJSON)
+	cert := fakeCert.CodeCert
 	certBase64 := base64.StdEncoding.EncodeToString(cert.Raw)
 	println(signatureBase64)
 	return licenseID + "-" + licensePartBase64 + "-" + signatureBase64 + "-" + certBase64, nil

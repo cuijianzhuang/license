@@ -20,7 +20,7 @@ func (s *JetbrainsRpcService) Ping(ctx *gin.Context, machineId, salt string) {
 		Salt:      salt,
 		MachineId: machineId,
 	}
-	pingResponse := entity.NewPingResponse(pingReq, util.Fake)
+	pingResponse := entity.NewPingResponse(pingReq, util.GetFake())
 	ctx.Render(200, entity.NewXMLTicket(pingResponse))
 }
 
@@ -34,7 +34,7 @@ func (s *JetbrainsRpcService) ObtainTicket(ctx *gin.Context, username, hostName,
 		UserName:  username,
 		MachineId: machineId,
 	}
-	ticketResponse := entity.NewObtainTicketResponse(obtainReq, util.Fake)
+	ticketResponse := entity.NewObtainTicketResponse(obtainReq, util.GetFake())
 	ctx.Render(200, entity.NewXMLTicket(ticketResponse))
 }
 
@@ -44,6 +44,6 @@ func (s *JetbrainsRpcService) ReleaseTicket(ctx *gin.Context, machineId, salt st
 		Salt:      salt,
 		MachineId: machineId,
 	}
-	releaseTicketResponse := entity.NewReleaseTicketResponse(releaseReq, util.Fake)
+	releaseTicketResponse := entity.NewReleaseTicketResponse(releaseReq, util.GetFake())
 	ctx.Render(200, entity.NewXMLTicket(releaseTicketResponse))
 }

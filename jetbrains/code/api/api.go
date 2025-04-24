@@ -27,7 +27,7 @@ func (controller *Controller) FetchProduceLatest(c *gin.Context) {
 			return
 		}
 	}()
-	
+
 	c.JSON(200, gin.H{
 		"message": "Fetching latest products in background",
 	})
@@ -43,7 +43,7 @@ func (controller *Controller) FetchPluginLatest(c *gin.Context) {
 			return
 		}
 	}()
-	
+
 	c.JSON(200, gin.H{
 		"message": "Fetching latest plugins in background",
 	})
@@ -68,7 +68,8 @@ func (controller *Controller) Generate(c *gin.Context) {
 		c.String(500, "Failed to generate license")
 	}
 	// Generate powerConf
-	powerConfRule := util.GeneratePowerResult(util.Fake.CodeCert, util.Fake.CodeRootCert)
+	fakeCert := util.GetFake()
+	powerConfRule := util.GeneratePowerResult(fakeCert.CodeCert, fakeCert.CodeRootCert)
 
 	// Assemble data
 	var result strings.Builder

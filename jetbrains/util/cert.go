@@ -15,11 +15,23 @@ import (
 	"license/logger"
 	"math/big"
 	"os"
+	"sync"
 	"time"
 )
 
-var Fake = &FakeCert{
-	ServerUID: "lemon",
+var (
+	fake     *FakeCert
+	fakeOnce sync.Once
+)
+
+// GetFake returns the singleton FakeCert instance
+func GetFake() *FakeCert {
+	fakeOnce.Do(func() {
+		fake = &FakeCert{
+			ServerUID: "lemon",
+		}
+	})
+	return fake
 }
 
 // GeneratePowerResult generates power.conf configuration
