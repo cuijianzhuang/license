@@ -54,33 +54,42 @@ const ServerAddressContainer = styled.div`
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
+  padding-right: 65px; /* Ensure content doesn't overlap with buttons */
   margin-bottom: 16px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   overflow-wrap: break-word;
   word-break: break-all;
+  
+  @media (max-width: 768px) {
+    padding-right: 70px;
+  }
 `;
 
-const CopyButton = styled(Button)`
+const ButtonsContainer = styled.div`
   position: absolute;
   top: 8px;
   right: 8px;
-  opacity: 0.8;
+  display: flex;
+  gap: 4px;
   z-index: 2;
+  
+  @media (max-width: 768px) {
+    top: 4px;
+    right: 4px;
+  }
+`;
+
+const ActionButton = styled(Button)`
+  opacity: 0.8;
   
   &:hover {
     opacity: 1;
   }
-`;
-
-const ReloadButton = styled(Button)`
-  position: absolute;
-  top: 8px;
-  right: 42px;
-  opacity: 0.8;
-  z-index: 2;
   
-  &:hover {
-    opacity: 1;
+  @media (max-width: 768px) {
+    padding: 0 8px;
+    height: 24px;
+    font-size: 12px;
   }
 `;
 
@@ -175,22 +184,26 @@ const JRebel: React.FC = () => {
           {t('jrebel.baseServerAddress')}:
         </Paragraph>
         <ServerAddressContainer>
-          {jrebelAddress}
-          <CopyButton
-            size="small"
-            type="primary"
-            ghost
-            icon={copying['jrebelAddress'] ? <CheckOutlined /> : <CopyOutlined />}
-            onClick={() => copyToClipboard('jrebelAddress', jrebelAddress)}
-          />
-          <ReloadButton
-            size="small"
-            type="primary"
-            ghost
-            icon={<ReloadOutlined spin={regenerating} />}
-            onClick={handleRegenerateGuid}
-            title={t('jrebel.regenerateGuid')}
-          />
+          <div style={{ wordBreak: 'break-all', width: '100%' }}>
+            {jrebelAddress}
+          </div>
+          <ButtonsContainer>
+            <ActionButton
+              size="small"
+              type="primary"
+              ghost
+              icon={<ReloadOutlined spin={regenerating} />}
+              onClick={handleRegenerateGuid}
+              title={t('jrebel.regenerateGuid')}
+            />
+            <ActionButton
+              size="small"
+              type="primary"
+              ghost
+              icon={copying['jrebelAddress'] ? <CheckOutlined /> : <CopyOutlined />}
+              onClick={() => copyToClipboard('jrebelAddress', jrebelAddress)}
+            />
+          </ButtonsContainer>
         </ServerAddressContainer>
       </FormCard>
 

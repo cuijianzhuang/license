@@ -68,12 +68,20 @@ const AuthorizationCodeContainer = styled.div`
   }
 `;
 
-const CopyButton = styled(Button)`
+const ButtonContainer = styled.div`
   position: absolute;
   top: 8px;
   right: 8px;
-  opacity: 0.8;
   z-index: 10;
+  
+  @media (max-width: 768px) {
+    top: 4px;
+    right: 4px;
+  }
+`;
+
+const CopyButton = styled(Button)`
+  opacity: 0.8;
   
   &:hover {
     opacity: 1;
@@ -203,13 +211,15 @@ const FinalShell: React.FC = () => {
                 <CodeContainer>
                   <AuthorizationCodeContainer>
                     {code}
-                    <CopyButton
-                      size="small"
-                      type="primary"
-                      ghost
-                      icon={copying[copyKey] ? <CheckOutlined /> : <CopyOutlined />}
-                      onClick={() => copyToClipboard(copyKey, code)}
-                    />
+                    <ButtonContainer>
+                      <CopyButton
+                        size="small"
+                        type="primary"
+                        ghost
+                        icon={copying[copyKey] ? <CheckOutlined /> : <CopyOutlined />}
+                        onClick={() => copyToClipboard(copyKey, code)}
+                      />
+                    </ButtonContainer>
                   </AuthorizationCodeContainer>
                 </CodeContainer>
               </div>

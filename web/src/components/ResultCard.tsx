@@ -61,10 +61,14 @@ const LabelText = styled(Text)`
   color: #4b5563;
 `;
 
-const CopyButton = styled(Button)`
+const ButtonContainer = styled.div`
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 2;
+`;
+
+const CopyButton = styled(Button)`
   opacity: 0.8;
   
   &:hover {
@@ -138,13 +142,15 @@ const ResultCard: React.FC<ResultCardProps> = ({ title, data, fileName }) => {
             <LabelText>{key}:</LabelText>
             <LicenseContent>
               {value}
-              <CopyButton
-                size="small"
-                type="primary"
-                ghost
-                icon={copying[key] ? <CheckOutlined /> : <CopyOutlined />}
-                onClick={() => copyToClipboard(key, value)}
-              />
+              <ButtonContainer>
+                <CopyButton
+                  size="small"
+                  type="primary"
+                  ghost
+                  icon={copying[key] ? <CheckOutlined /> : <CopyOutlined />}
+                  onClick={() => copyToClipboard(key, value)}
+                />
+              </ButtonContainer>
             </LicenseContent>
           </Space>
         </div>

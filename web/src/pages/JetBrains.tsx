@@ -53,12 +53,15 @@ const LicenseContent = styled.div`
   overflow-x: auto;
 `;
 
-const CopyButton = styled(Button)`
+const ButtonContainer = styled.div`
   position: absolute;
   top: 8px;
   right: 8px;
-  opacity: 0.8;
   z-index: 2;
+`;
+
+const CopyButton = styled(Button)`
+  opacity: 0.8;
   
   &:hover {
     opacity: 1;
@@ -426,13 +429,15 @@ const JetBrains: React.FC = () => {
                 <LabelText>{t('jetbrains.powerConfLabel')}:</LabelText>
                 <LicenseContent>
                   {extractPowerConf()}
-                  <CopyButton
-                    size="small"
-                    type="primary"
-                    ghost
-                    icon={copying['powerConf'] ? <CheckOutlined /> : <CopyOutlined />}
-                    onClick={() => copyToClipboard('powerConf', extractPowerConf() || '')}
-                  />
+                  <ButtonContainer>
+                    <CopyButton
+                      size="small"
+                      type="primary"
+                      ghost
+                      icon={copying['powerConf'] ? <CheckOutlined /> : <CopyOutlined />}
+                      onClick={() => copyToClipboard('powerConf', extractPowerConf() || '')}
+                    />
+                  </ButtonContainer>
                 </LicenseContent>
               </div>
             )}
@@ -442,13 +447,15 @@ const JetBrains: React.FC = () => {
                 <LabelText>{t('jetbrains.activationCode')}:</LabelText>
                 <LicenseContent>
                   {extractActivationCode()}
-                  <CopyButton
-                    size="small"
-                    type="primary"
-                    ghost
-                    icon={copying['activationCode'] ? <CheckOutlined /> : <CopyOutlined />}
-                    onClick={() => copyToClipboard('activationCode', extractActivationCode() || '')}
-                  />
+                  <ButtonContainer>
+                    <CopyButton
+                      size="small"
+                      type="primary"
+                      ghost
+                      icon={copying['activationCode'] ? <CheckOutlined /> : <CopyOutlined />}
+                      onClick={() => copyToClipboard('activationCode', extractActivationCode() || '')}
+                    />
+                  </ButtonContainer>
                 </LicenseContent>
               </div>
             )}
