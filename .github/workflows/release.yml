@@ -348,6 +348,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pre_check, collect_binaries]
     if: needs.pre_check.outputs.is_tag_or_release == 'true'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Check out code
         uses: actions/checkout@v4
