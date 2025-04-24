@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Select } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { GlobalOutlined } from '@ant-design/icons';
-
-const { Option } = Select;
 
 // Helper function to map language code to HTML lang attribute
 const mapToHtmlLang = (language: string): string => {
@@ -18,6 +15,17 @@ const mapToHtmlLang = (language: string): string => {
 const LanguageSelector: React.FC = () => {
   const { i18n } = useTranslation();
   const [currentLanguage, setCurrentLanguage] = useState<string>('en'); // Default to English
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
+  
+  // 添加窗口大小变化监听
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Initialize language from localStorage on component mount
   useEffect(() => {
@@ -74,21 +82,35 @@ const LanguageSelector: React.FC = () => {
     document.documentElement.lang = mapToHtmlLang(value);
   };
 
+  // 获取语言显示名称
+  const getLanguageDisplay = (lang: string): string => {
+    switch (lang) {
+      case 'zh-CN': return isMobile ? '简中' : '简体中文';
+      case 'zh-TW': return isMobile ? '繁中' : '繁體中文';
+      case 'ru': return isMobile ? 'RU' : 'Русский';
+      case 'en': return isMobile ? 'EN' : 'English';
+      case 'ja': return isMobile ? 'JP' : '日本語';
+      case 'ko': return isMobile ? 'KR' : '한국어';
+      default: return 'English';
+    }
+  };
+
   return (
     <Select
       value={currentLanguage}
-      style={{ width: 120 }}
+      style={{ width: 100, maxWidth: '100%' }}
       onChange={handleChange}
       dropdownStyle={{ zIndex: 1100 }}
-      prefix={<GlobalOutlined />}
-    >
-      <Option value="zh-CN">简体中文</Option>
-      <Option value="zh-TW">繁體中文</Option>
-      <Option value="ru">Русский</Option>
-      <Option value="en">English</Option>
-      <Option value="ja">日本語</Option>
-      <Option value="ko">한국어</Option>
-    </Select>
+      popupMatchSelectWidth={false}
+      options={[
+        { value: 'zh-CN', label: getLanguageDisplay('zh-CN') },
+        { value: 'zh-TW', label: getLanguageDisplay('zh-TW') },
+        { value: 'ru', label: getLanguageDisplay('ru') },
+        { value: 'en', label: getLanguageDisplay('en') },
+        { value: 'ja', label: getLanguageDisplay('ja') },
+        { value: 'ko', label: getLanguageDisplay('ko') }
+      ]}
+    />
   );
 };
 

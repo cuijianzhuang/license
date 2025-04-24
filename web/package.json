@@ -54,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@types/antd": "^0.12.32",
     "@types/styled-components": "^5.1.34"
   }
 }
