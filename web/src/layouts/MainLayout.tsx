@@ -16,8 +16,36 @@ import {
 import { responsive } from '../styles/theme';
 import LanguageSelector from '../components/LanguageSelector';
 import { server } from '../api';
+import { keyframes } from 'styled-components';
 
 const { Header, Content } = Layout;
+
+const pulse = keyframes`
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
+
+const float = keyframes`
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+`;
 
 const StyledLayout = styled(Layout)`
   min-height: 100vh;
@@ -57,7 +85,7 @@ const LogoText = styled.span`
 `;
 
 const VersionText = styled.span`
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
   color: #7a9bcf;
   margin-left: 4px;
@@ -112,6 +140,13 @@ const UpdateIcon = styled(UpCircleOutlined)`
   font-size: 14px;
   margin-left: 4px;
   cursor: pointer;
+  animation: ${pulse} 2s infinite ease-in-out, ${float} 3s infinite ease-in-out;
+  transition: all 0.3s;
+  
+  &:hover {
+    color: #389e0d;
+    transform: scale(1.3);
+  }
 `;
 
 const MainLayout: React.FC = () => {
@@ -270,13 +305,10 @@ const MainLayout: React.FC = () => {
               License
               {version && (
                 <>
-                  <span style={{ fontSize: '11px', marginLeft: '4px', color: '#7a9bcf', opacity: 0.85 }}>v{version}</span>
+                  <span style={{ fontSize: '13px', marginLeft: '4px', color: '#7a9bcf', opacity: 0.85 }}>v{version}</span>
                   {needUpdate && (
                     <Tooltip title={updateTooltipContent} placement="bottom">
-                      <UpCircleOutlined 
-                        style={{ color: '#52c41a', fontSize: '14px', marginLeft: '4px', cursor: 'pointer' }} 
-                        onClick={handleUpdateClick}
-                      />
+                      <UpdateIcon onClick={handleUpdateClick} />
                     </Tooltip>
                   )}
                 </>
