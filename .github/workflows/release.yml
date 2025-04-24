@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 预检步骤：判断是否继续运行完整工作流
+  # 0.预检步骤：判断是否继续运行完整工作流
   pre_check:
     name: Check Trigger Event
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for proper versioning
-      
+
       - name: Determine event type
         id: check
         run: |
@@ -76,7 +76,7 @@ jobs:
             echo "is_tag_or_release=false" >> $GITHUB_OUTPUT
             echo "should_create_release=false" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Get version
         id: get_version
         run: |
@@ -97,18 +97,13 @@ jobs:
           echo "Using version: $VERSION (Build version: $PURE_VERSION)"
           echo "Using version: $VERSION (Docker version: $PURE_VERSION)"
 
-  # 1. 测试阶段
-  test:
-    name: Test
+  # 1.Web前端构建阶段
+  build_web:
+    name: Build Web Frontend
     runs-on: ubuntu-latest
     needs: pre_check
     if: needs.pre_check.outputs.should_run_full_workflow == 'true'
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.24'
-
       - name: Check out code
         uses: actions/checkout@v4
         with:
@@ -121,7 +116,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: 'web/package-lock.json'
-      
+
       # 构建前端
       - name: Build web frontend
         run: |
@@ -135,7 +130,7 @@ jobs:
           echo "Checking web build output:"
           ls -la web/build/
           echo "Web frontend built successfully. It will be embedded in the Go binary using //go:embed"
-      
+
       # 将前端构建产物打包并上传
       - name: Compress and upload web build artifacts
         run: |
@@ -147,7 +142,7 @@ jobs:
           # 验证压缩包内容
           echo "Verifying archive contents:"
           tar -tvf web-build.tar.gz | head -10
-      
+
       - name: Upload web build archive
         uses: actions/upload-artifact@v4
         with:
@@ -155,17 +150,11 @@ jobs:
           path: web-build.tar.gz
           retention-days: 1
 
-      - name: Get dependencies
-        run: go mod download
-
-      - name: Run tests
-        run: go test -v ./...
-
-  # 2. 构建可执行文件
-  build:
-    name: Build
+  # 2. 测试阶段
+  test:
+    name: Test
     runs-on: ubuntu-latest
-    needs: [pre_check, test]  # 依赖预检和测试
+    needs: [pre_check, build_web]  # 依赖预检和web构建
     if: needs.pre_check.outputs.should_run_full_workflow == 'true'
     steps:
       - name: Set up Go
@@ -177,13 +166,52 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for proper versioning
-      
+
+      # 下载web构建产物（如有需要）
+      - name: Download web build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build-archive
+          path: tmp/
+
+      - name: Extract web build if needed for tests
+        run: |
+          # 只有在测试需要web构建产物时才解压
+          if [ -f "tmp/web-build.tar.gz" ]; then
+            echo "Extracting web build for tests..."
+            tar -xzvf tmp/web-build.tar.gz
+            echo "Web build extracted for testing"
+          fi
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test -v ./...
+
+  # 3. 构建可执行文件
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [pre_check, build_web, test]  # 依赖预检、web构建和测试
+    if: needs.pre_check.outputs.should_run_full_workflow == 'true'
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning
+
       # 获取依赖
       - name: Get dependencies
         run: go mod download
-        
-      # 下载并解压前端构建产物
-      - name: Download and extract web build archive
+
+      # 创建临时目录下载压缩包
+      - name: Create temporary directory
         run: |
           # 创建临时目录下载压缩包
           mkdir -p tmp
@@ -193,7 +221,7 @@ jobs:
         with:
           name: web-build-archive
           path: tmp/
-      
+
       - name: Extract web build
         run: |
           # 检查下载的压缩包
@@ -233,7 +261,7 @@ jobs:
             find . -maxdepth 3 -type d
             exit 1
           fi
-      
+
       # 编译不同平台的二进制文件
       - name: Build binaries
         run: |
@@ -278,7 +306,7 @@ jobs:
           name: binaries
           path: build/*
 
-  # 3. 构建Docker镜像（只在tag或手动触发时运行）
+  # 4. 构建Docker镜像（只在tag或手动触发时运行）
   docker:
     name: Build and Push Docker image
     runs-on: ubuntu-latest
@@ -348,7 +376,7 @@ jobs:
           
           # 验证二进制文件
           RUN ls -la /app && chmod +x /app/license
-              
+          
           ENTRYPOINT ["/app/license"]
           EOF
 
@@ -432,22 +460,22 @@ jobs:
           if [ -n "$PREVIOUS_TAG" ]; then
             echo "Full Changelog: [$PREVIOUS_TAG...$CURRENT_TAG](https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...$CURRENT_TAG)" >> release_body.md
             echo "" >> release_body.md
-            
+          
             # 获取提交日志并分类
             echo "### 🚀 Features" >> release_body.md
             git log --pretty=format:"* %s" $PREVIOUS_TAG..$CURRENT_TAG | grep -i "feat\|feature\|新增\|添加" >> release_body.md || echo "* No new features" >> release_body.md
             echo "" >> release_body.md
-            
+          
             echo "### 🐛 Bug Fixes" >> release_body.md
             git log --pretty=format:"* %s" $PREVIOUS_TAG..$CURRENT_TAG | grep -i "fix\|修复\|bug" >> release_body.md || echo "* No bug fixes" >> release_body.md
             echo "" >> release_body.md
-            
+          
             echo "### ♻️ Other Changes" >> release_body.md
             git log --pretty=format:"* %s" $PREVIOUS_TAG..$CURRENT_TAG | grep -v -i "feat\|feature\|fix\|bug\|新增\|添加\|修复" >> release_body.md || echo "* No other changes" >> release_body.md
           else
             echo "🎉 First Release" >> release_body.md
           fi
-      
+
       - name: Release
         uses: ncipollo/release-action@v1
         with:
