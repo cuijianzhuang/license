@@ -61,6 +61,8 @@ func SetupRouter(r *gin.RouterGroup) {
 	finalShellGroup := r.Group("/final-shell")
 	{
 		finalShellGroup.POST("/generateLicense", finalShellApi.GenerateLicense)
+		finalShellGroup.GET("/stats", finalShellApi.GetStats)
+		finalShellGroup.POST("/clear-cache", finalShellApi.ClearCache)
 	}
 
 	// gitlab
