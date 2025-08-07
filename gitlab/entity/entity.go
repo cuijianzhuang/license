@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -10,8 +9,12 @@ type CustomTime struct {
 }
 
 func (ct CustomTime) MarshalJSON() ([]byte, error) {
-	formatted := fmt.Sprintf("\"%s\"", ct.Format("2006-01-02"))
-	return []byte(formatted), nil
+	// Pre-allocate buffer with known size for better performance
+	buf := make([]byte, 0, 12) // "2006-01-02" + quotes = 12 chars
+	buf = append(buf, '"')
+	buf = ct.AppendFormat(buf, "2006-01-02")
+	buf = append(buf, '"')
+	return buf, nil
 }
 
 // LicenseInfo struct corresponds to the LicenseInfo class in Java, used to store license information

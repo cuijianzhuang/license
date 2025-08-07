@@ -2,10 +2,12 @@ package service
 
 import (
 	"archive/zip"
+	"bytes"
 	"crypto/aes"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	gorsa "github.com/Lyafei/go-rsa"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -15,6 +17,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -291,33 +295,117 @@ var features = []string{
 	"instance_level_devops_adoption",
 }
 
-var privateKey string
-var publicKey string
-
-// LoadKeys reads, decodes and parses RSA private and public keys.
-func LoadKeys() error {
-	// Read public key
-	publicBytes, err := os.ReadFile(config.GetConfig().DataDir + "/.license_encryption_key.pub")
-	if err != nil {
-		log.Printf("Failed to read public key file: %v", err)
-		return err
-	}
-	// Convert to string
-	publicKey = string(publicBytes)
-
-	// Read private key
-	privateBytes, err := os.ReadFile(config.GetConfig().DataDir + "/.license_decryption_key.pri")
-	if err != nil {
-		log.Printf("Failed to read private key file: %v", err)
-		return err
-	}
-	// Convert to string
-	privateKey = string(privateBytes)
-	return nil
+// KeyManager manages RSA keys with lazy loading and caching
+type KeyManager struct {
+	privateKey []byte
+	publicKey  []byte
+	once       sync.Once
+	mutex      sync.RWMutex
+	err        error
 }
 
-// createLicenseJson creates a JSON representation of the license
-func createLicenseJson(licenseInfo entity.LicenseInfo, expireTime string) (string, error) {
+var keyManager = &KeyManager{}
+
+// getKeys returns cached keys with lazy loading
+func (km *KeyManager) getKeys() ([]byte, []byte, error) {
+	km.once.Do(func() {
+		if publicBytes, err := os.ReadFile(config.GetConfig().DataDir + "/.license_encryption_key.pub"); err == nil {
+			km.publicKey = publicBytes
+		} else {
+			km.err = fmt.Errorf("failed to read public key: %v", err)
+			return
+		}
+		if privateBytes, err := os.ReadFile(config.GetConfig().DataDir + "/.license_decryption_key.pri"); err == nil {
+			km.privateKey = privateBytes
+		} else {
+			km.err = fmt.Errorf("failed to read private key: %v", err)
+			return
+		}
+	})
+
+	km.mutex.RLock()
+	defer km.mutex.RUnlock()
+	return km.privateKey, km.publicKey, km.err
+}
+
+// LoadKeys initializes the key manager (for backward compatibility)
+func LoadKeys() error {
+	_, _, err := keyManager.getKeys()
+	return err
+}
+
+// Buffer pools for efficient memory management
+var (
+	jsonBufferPool = sync.Pool{
+		New: func() interface{} {
+			return bytes.NewBuffer(make([]byte, 0, 4096))
+		},
+	}
+	ioBufferPool = sync.Pool{
+		New: func() interface{} {
+			return make([]byte, 32*1024) // 32KB buffer
+		},
+	}
+	aesKeyPool = sync.Pool{
+		New: func() interface{} {
+			return make([]byte, 16)
+		},
+	}
+	ivPool = sync.Pool{
+		New: func() interface{} {
+			return make([]byte, aes.BlockSize)
+		},
+	}
+)
+
+// LicenseCache implements a simple TTL cache for license generation
+type LicenseCache struct {
+	cache      *sync.Map
+	ttl        time.Duration
+	maxEntries int64
+	entries    int64
+}
+
+type CacheEntry struct {
+	data      []byte
+	timestamp time.Time
+}
+
+var licenseCache = &LicenseCache{
+	cache:      &sync.Map{},
+	ttl:        15 * time.Minute,
+	maxEntries: 1000,
+}
+
+func (lc *LicenseCache) Get(key string) ([]byte, bool) {
+	if value, ok := lc.cache.Load(key); ok {
+		entry := value.(CacheEntry)
+		if time.Since(entry.timestamp) < lc.ttl {
+			return entry.data, true
+		}
+		lc.cache.Delete(key)
+		atomic.AddInt64(&lc.entries, -1)
+	}
+	return nil, false
+}
+
+func (lc *LicenseCache) Set(key string, data []byte) {
+	if atomic.LoadInt64(&lc.entries) >= lc.maxEntries {
+		return // Simple eviction
+	}
+
+	cachedData := make([]byte, len(data))
+	copy(cachedData, data)
+
+	lc.cache.Store(key, CacheEntry{
+		data:      cachedData,
+		timestamp: time.Now(),
+	})
+	atomic.AddInt64(&lc.entries, 1)
+}
+
+// createLicenseJson creates a JSON representation of the license with optimized buffer usage
+func createLicenseJson(licenseInfo entity.LicenseInfo, expireTime string) ([]byte, error) {
 
 	var expirationDate time.Time
 	var err error
@@ -328,7 +416,7 @@ func createLicenseJson(licenseInfo entity.LicenseInfo, expireTime string) (strin
 		expirationDate, err = time.Parse(time.DateTime, expireTime)
 		if err != nil {
 			log.Printf("Failed to parse expiration time: %v", err)
-			return "", err
+			return nil, err
 		}
 	}
 
@@ -364,12 +452,26 @@ func createLicenseJson(licenseInfo entity.LicenseInfo, expireTime string) (strin
 		},
 	}
 
-	jsonData, err := json.Marshal(license)
-	if err != nil {
-		return "", err
+	buf := jsonBufferPool.Get().(*bytes.Buffer)
+	defer func() {
+		buf.Reset()
+		jsonBufferPool.Put(buf)
+	}()
+
+	encoder := json.NewEncoder(buf)
+	if err := encoder.Encode(license); err != nil {
+		return nil, err
 	}
 
-	return string(jsonData), nil
+	// Remove trailing newline added by encoder
+	data := buf.Bytes()
+	if len(data) > 0 && data[len(data)-1] == '\n' {
+		data = data[:len(data)-1]
+	}
+
+	result := make([]byte, len(data))
+	copy(result, data)
+	return result, nil
 }
 
 // generateRandomIV generates a random initialization vector (IV)
@@ -392,9 +494,13 @@ func Encrypt(data, key, iv []byte) ([]byte, error) {
 	return enc, err
 }
 
-// Uses RSA private key to "encrypt" data
+// Uses RSA private key to "encrypt" data with cached keys
 func encryptWithPrivateKey(data string) (string, error) {
-	encrypt, err := gorsa.PriKeyEncrypt(data, privateKey)
+	privateKey, _, err := keyManager.getKeys()
+	if err != nil {
+		return "", err
+	}
+	encrypt, err := gorsa.PriKeyEncrypt(data, string(privateKey))
 	if err != nil {
 		log.Printf("Failed to encrypt data with RSA private key: %v", err)
 		return "", err
@@ -402,23 +508,27 @@ func encryptWithPrivateKey(data string) (string, error) {
 	return encrypt, nil
 }
 
-// encryptLicense encrypts license data using AES and RSA
-func encryptLicense(data string) (string, error) {
-	// Generate 256-bit AES key
-	key := make([]byte, 16)
+// encryptLicense encrypts license data using AES and RSA with pooled resources
+func encryptLicense(data []byte) (string, error) {
+	// Get pooled AES key and IV
+	key := aesKeyPool.Get().([]byte)
+	defer aesKeyPool.Put(key)
+
+	iv := ivPool.Get().([]byte)
+	defer ivPool.Put(iv)
+
+	// Generate fresh random data
 	if _, err := rand.Read(key); err != nil {
 		log.Printf("Failed to generate AES key: %v", err)
 		return "", err
 	}
 
-	// Generate random IV
-	iv, err := generateRandomIV()
-	if err != nil {
+	if _, err := rand.Read(iv); err != nil {
 		log.Printf("Failed to generate AES IV: %v", err)
 		return "", err
 	}
 
-	encryptedData, err := Encrypt([]byte(data), key, iv)
+	encryptedData, err := Encrypt(data, key, iv)
 	if err != nil {
 		log.Printf("Failed to encrypt data: %v", err)
 		return "", err
@@ -456,8 +566,20 @@ func Generate(ctx *gin.Context, licenseInfo entity.LicenseInfo, expireTime strin
 	createLicense(ctx, licenseInfo, expireTime)
 }
 
-// createLicense creates and sends a license
+// createLicense creates and sends a license with caching support
 func createLicense(ctx *gin.Context, licenseInfo entity.LicenseInfo, expireTime string) {
+	// Create cache key
+	cacheKey := fmt.Sprintf("%s:%s:%s:%s", licenseInfo.Name, licenseInfo.Email, licenseInfo.Company, expireTime)
+
+	// Check cache first
+	if cachedLicense, found := licenseCache.Get(cacheKey); found {
+		ctx.Header("Content-Disposition", "attachment; filename=license.zip")
+		ctx.Header("Content-Type", "application/zip")
+		ctx.Header("X-Cache", "HIT")
+		ctx.Data(http.StatusOK, "application/zip", cachedLicense)
+		return
+	}
+
 	// Create license JSON data
 	licenseJson, err := createLicenseJson(licenseInfo, expireTime)
 	if err != nil {
@@ -474,16 +596,44 @@ func createLicense(ctx *gin.Context, licenseInfo entity.LicenseInfo, expireTime 
 		return
 	}
 
-	// Export a ZIP file containing the encrypted license and public key file
-	err = exportZipStream(ctx, encryptedLicense)
-	if err != nil {
-		log.Printf("Failed to export ZIP file: %v", err)
+	// Create ZIP file in memory first for caching
+	buf := &bytes.Buffer{}
+	zipWriter := zip.NewWriter(buf)
+
+	// Add public key file to ZIP
+	if err := addFileToZipOptimized(zipWriter, config.GetConfig().DataDir+"/.license_encryption_key.pub", "license/.license_encryption_key.pub"); err != nil {
+		log.Printf("Failed to add public key to ZIP: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
+
+	// Add encrypted license data to ZIP
+	if err := addLicenseToZip(zipWriter, encryptedLicense, "license/license.gitlab-license"); err != nil {
+		log.Printf("Failed to add license to ZIP: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	if err := zipWriter.Close(); err != nil {
+		log.Printf("Failed to close ZIP writer: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	zipData := buf.Bytes()
+
+	// Cache the result
+	licenseCache.Set(cacheKey, zipData)
+
+	// Send response
+	ctx.Header("Content-Disposition", "attachment; filename=license.zip")
+	ctx.Header("Content-Type", "application/zip")
+	ctx.Header("X-Cache", "MISS")
+	ctx.Data(http.StatusOK, "application/zip", zipData)
 }
 
 // exportZipStream creates and sends a ZIP file containing the encrypted license and public key file
+// This function is kept for backward compatibility but is no longer used in the optimized flow
 func exportZipStream(ctx *gin.Context, encryptedLicense string) error {
 	// Set response headers for file download
 	ctx.Status(http.StatusOK) // Explicitly set status code to 200 OK
@@ -499,7 +649,7 @@ func exportZipStream(ctx *gin.Context, encryptedLicense string) error {
 	}(zipWriter)
 
 	// Add public key file to ZIP
-	if err := addFileToZip(zipWriter, config.GetConfig().DataDir+"/.license_encryption_key.pub", "license/.license_encryption_key.pub"); err != nil {
+	if err := addFileToZipOptimized(zipWriter, config.GetConfig().DataDir+"/.license_encryption_key.pub", "license/.license_encryption_key.pub"); err != nil {
 		return err
 	}
 
@@ -511,34 +661,25 @@ func exportZipStream(ctx *gin.Context, encryptedLicense string) error {
 	return nil
 }
 
-// addFileToZip reads a file from the filesystem and adds it to the ZIP
-func addFileToZip(zipWriter *zip.Writer, filePath, zipPath string) error {
-	fileToZip, err := os.Open(filePath)
+// addFileToZipOptimized reads a file from the filesystem and adds it to the ZIP with buffered I/O
+func addFileToZipOptimized(zipWriter *zip.Writer, filePath, zipPath string) error {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
-	defer func(fileToZip *os.File) {
-		err := fileToZip.Close()
-		if err != nil {
-			log.Printf("Failed to close file: %v", err)
-		}
-	}(fileToZip)
+	defer file.Close()
 
-	// Get file info for setting the ZIP entry's size and timestamp
-	fileInfo, err := fileToZip.Stat()
+	fileInfo, err := file.Stat()
 	if err != nil {
 		return err
 	}
 
-	// Create ZIP entry and manually set file timestamp
 	header, err := zip.FileInfoHeader(fileInfo)
 	if err != nil {
 		return err
 	}
 	header.Name = zipPath
-	// Set compression method
 	header.Method = zip.Deflate
-	// Preserve original file's modification time
 	header.Modified = fileInfo.ModTime()
 
 	zipFile, err := zipWriter.CreateHeader(header)
@@ -546,8 +687,11 @@ func addFileToZip(zipWriter *zip.Writer, filePath, zipPath string) error {
 		return err
 	}
 
-	// Write file data to ZIP
-	_, err = io.Copy(zipFile, fileToZip)
+	// Use pooled buffer for efficient copying
+	buffer := ioBufferPool.Get().([]byte)
+	defer ioBufferPool.Put(buffer)
+
+	_, err = io.CopyBuffer(zipFile, file, buffer)
 	return err
 }
 
