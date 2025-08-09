@@ -81,31 +81,66 @@ func SetupRouter(r *gin.RouterGroup) {
 		rpcGroup.GET("/releaseTicket.action", rpcApi.ReleaseTicket)
 	}
 
-	// jrebel
-	jrebelLeasesApi := jrebel.NewLeasesController()
+	// jrebel - 使用优化版本
+	jrebelLeasesApi := jrebel.NewLeasesController()  // 原始版本备用
 	jrebelIndexApi := jrebel.NewIndexController()
+	
+	// 创建优化版控制器
+	optimizedJrebelApi, err := jrebel.NewOptimizedLeasesController()
+	var useOptimized bool
+	if err != nil {
+		// 如果优化版本初始化失败，回退到原始版本
+		useOptimized = false
+	} else {
+		useOptimized = true
+	}
+	
 	jrebelGroup := r.Group("/jrebel")
 	{
 		jrebelGroup.GET("/", jrebelIndexApi.IndexHandler)
-		jrebelGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
+		
+		if useOptimized {
+			// 使用优化版本
+			jrebelGroup.DELETE("/leases/1", optimizedJrebelApi.OptimizedLeases1Handler)
+			jrebelGroup.POST("/leases", optimizedJrebelApi.OptimizedLeasesHandler)
+			jrebelGroup.POST("/validate-connection", optimizedJrebelApi.OptimizedValidateHandler)
+			jrebelGroup.POST("/features", optimizedJrebelApi.OptimizedValidateHandler)
+			jrebelGroup.GET("/features", optimizedJrebelApi.OptimizedValidateHandler)
+			// 优化版本专有端点
+			jrebelGroup.GET("/performance-stats", optimizedJrebelApi.GetPerformanceStats)
+			jrebelGroup.POST("/clear-cache", optimizedJrebelApi.ClearCache)
+		} else {
+			// 回退到原始版本
+			jrebelGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
+			jrebelGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
+			jrebelGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
+			jrebelGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
+			jrebelGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
+		}
+		
 		jrebelGroup.POST("/leases/1", func(c *gin.Context) {
 			c.Status(405)
 		})
-		jrebelGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
-		jrebelGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
-		jrebelGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
-		jrebelGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
 	}
 	jrebelAgentGroup := r.Group("/agent")
 	{
-		jrebelAgentGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
+		if useOptimized {
+			jrebelAgentGroup.DELETE("/leases/1", optimizedJrebelApi.OptimizedLeases1Handler)
+			jrebelAgentGroup.POST("/leases", optimizedJrebelApi.OptimizedLeasesHandler)
+			jrebelAgentGroup.POST("/validate-connection", optimizedJrebelApi.OptimizedValidateHandler)
+			jrebelAgentGroup.POST("/features", optimizedJrebelApi.OptimizedValidateHandler)
+			jrebelAgentGroup.GET("/features", optimizedJrebelApi.OptimizedValidateHandler)
+		} else {
+			jrebelAgentGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
+			jrebelAgentGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
+			jrebelAgentGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
+			jrebelAgentGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
+			jrebelAgentGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
+		}
+		
 		jrebelAgentGroup.POST("/leases/1", func(c *gin.Context) {
 			c.Status(405)
 		})
-		jrebelAgentGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
-		jrebelAgentGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
-		jrebelAgentGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
-		jrebelAgentGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
 	}
 
 	// mobaxterm
