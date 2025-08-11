@@ -1,9 +1,10 @@
 package cron
 
 import (
-	"github.com/robfig/cron/v3"
 	"license/jetbrains/code/task"
 	"license/logger"
+
+	"github.com/robfig/cron/v3"
 )
 
 func InitCron() {

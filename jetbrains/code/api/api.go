@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"license/jetbrains/code/service"
 	"license/jetbrains/util"
 	"license/logger"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Controller defines the controller structure

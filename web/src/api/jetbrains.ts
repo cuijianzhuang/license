@@ -1,5 +1,5 @@
 import api from './config';
-import { JetBrainsLicense, ApiResponse } from '../types';
+import {ApiResponse, JetBrainsLicense} from '../types';
 
 /**
  * 生成JetBrains激活码

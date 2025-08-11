@@ -4,8 +4,6 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
 	"license/config"
 	"license/cron"
 	"license/initialize"
@@ -14,6 +12,9 @@ import (
 	"license/sys"
 	"net/http"
 	"strings"
+
+	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
 )
 
 //go:embed web/build

@@ -6,18 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"license/jetbrains/service"
 	"license/jetbrains/types"
 	"license/logger"
 	v1 "license/v1"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Controller handles JetBrains license API endpoints
 type Controller struct {
-	generator       *service.LicenseGenerator
-	productService  *service.ProductService
-	pluginService   *service.PluginService
+	generator      *service.LicenseGenerator
+	productService *service.ProductService
+	pluginService  *service.PluginService
 }
 
 // NewController creates a new JetBrains controller
@@ -38,13 +39,13 @@ func (c *Controller) GenerateLicense(ctx *gin.Context) {
 		// Try query parameters
 		req.LicenseeName = ctx.Query("licenseeName")
 		req.EffectiveDate = ctx.Query("effectiveDate")
-		
+
 		// Parse codes from comma-separated string
 		codesStr := ctx.Query("codes")
 		if codesStr != "" {
 			req.Codes = strings.Split(codesStr, ",")
 		}
-		
+
 		// Parse valid days
 		if validDaysStr := ctx.Query("validDays"); validDaysStr != "" {
 			// Parse to int, ignore error (will use default)
@@ -78,14 +79,14 @@ func (c *Controller) GenerateLicense(ctx *gin.Context) {
 // GetPowerConfig returns the power.conf configuration
 func (c *Controller) GetPowerConfig(ctx *gin.Context) {
 	powerConfig := c.generator.GetPowerConfig()
-	
+
 	// Check output format
 	format := ctx.Query("format")
 	if format == "text" || format == "raw" {
 		ctx.String(http.StatusOK, powerConfig.FullConfig)
 		return
 	}
-	
+
 	v1.HandleSuccess(ctx, powerConfig)
 }
 

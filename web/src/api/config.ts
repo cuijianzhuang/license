@@ -1,6 +1,6 @@
 import axios, {AxiosRequestConfig} from 'axios';
-import { message } from 'antd';
-import { ApiResponse } from '../types';
+import {message} from 'antd';
+import {ApiResponse} from '../types';
 
 // 创建 axios 实例
 const axiosInstance = axios.create({

@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
+	"license/jetbrains/code/entity"
+	"license/logger"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"license/jetbrains/code/entity"
-	"license/logger"
 )
 
 var DB *gorm.DB

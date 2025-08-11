@@ -3,7 +3,6 @@ package service
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"license/config"
 	"license/logger"
 	"license/utils/useragent"
@@ -15,8 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-gonic/gin"
+
 	"os"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 var (

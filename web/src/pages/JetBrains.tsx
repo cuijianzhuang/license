@@ -1,21 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {Typography, Form, Button, Alert, Card, Space, Input, DatePicker, App} from 'antd';
+import React, {useEffect, useRef, useState} from 'react';
+import {Alert, App, Button, Card, DatePicker, Form, Input, Space, Typography} from 'antd';
 import styled from 'styled-components';
+import type {Dayjs} from 'dayjs';
 import dayjs from 'dayjs';
-import type { Dayjs } from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/en';
-import { 
-  LoadingOutlined, 
-  InfoCircleOutlined,
-  CopyOutlined,
-  CheckOutlined
-} from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
+import {CheckOutlined, CopyOutlined, InfoCircleOutlined, LoadingOutlined} from '@ant-design/icons';
+import {useTranslation} from 'react-i18next';
 import PageHeader from '../components/PageHeader';
-import { jetbrains } from '../api';
-import { JetBrainsLicense } from '../types';
-import { copyAndManageState } from '../utils/clipboard';
+import {jetbrains} from '../api';
+import {JetBrainsLicense} from '../types';
+import {copyAndManageState} from '../utils/clipboard';
 import UsageNotice from '../components/UsageNotice';
 
 const { Paragraph, Text, Title } = Typography;

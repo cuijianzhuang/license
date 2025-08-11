@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Typography, Form, Button, Input, Select, message, Card, Spin, Row, Col } from 'antd';
+import React, {useEffect, useRef, useState} from 'react';
+import {Button, Card, Col, Form, Input, message, Row, Select, Spin, Typography} from 'antd';
 import styled from 'styled-components';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import PageHeader from '../components/PageHeader';
 import UsageNotice from '../components/UsageNotice';
-import { mobaxterm } from '../api';
+import {mobaxterm} from '../api';
 
 const { Paragraph } = Typography;
 const { Option } = Select;

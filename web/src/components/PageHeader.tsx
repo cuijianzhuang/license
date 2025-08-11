@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Typography, Breadcrumb } from 'antd';
-import { Link } from 'react-router-dom';
-import { HomeOutlined } from '@ant-design/icons';
+import {Breadcrumb, Typography} from 'antd';
+import {Link} from 'react-router-dom';
+import {HomeOutlined} from '@ant-design/icons';
 
 const { Title } = Typography;
 

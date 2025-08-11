@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ConfigProvider, App as AntApp } from 'antd';
+import React, {useEffect} from 'react';
+import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import {App as AntApp, ConfigProvider} from 'antd';
 import zhCN from 'antd/lib/locale/zh_CN';
 import enUS from 'antd/lib/locale/en_US';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import JetBrains from './pages/JetBrains';
@@ -12,7 +12,7 @@ import FinalShell from './pages/FinalShell';
 import MobaXterm from './pages/MobaXterm';
 import JRebel from './pages/JRebel';
 import GlobalStyles from './styles/GlobalStyles';
-import { theme } from './styles/theme';
+import {theme} from './styles/theme';
 
 // Helper function to map language code to HTML lang attribute
 const mapToHtmlLang = (language: string): string => {

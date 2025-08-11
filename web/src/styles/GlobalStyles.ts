@@ -1,5 +1,5 @@
-import { createGlobalStyle } from 'styled-components';
-import { breakpoints } from './theme';
+import {createGlobalStyle} from 'styled-components';
+import {breakpoints} from './theme';
 
 const GlobalStyles = createGlobalStyle`
   * {

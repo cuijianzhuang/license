@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"license/rpc/service"
 	"license/rpc/service/impl"
+
+	"github.com/gin-gonic/gin"
 )
 
 type RpcController struct {

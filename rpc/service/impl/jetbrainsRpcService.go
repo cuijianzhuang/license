@@ -1,10 +1,11 @@
 package impl
 
 import (
-	"github.com/gin-gonic/gin"
 	"license/jetbrains/server/entity"
 	"license/jetbrains/util"
 	"license/rpc/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 // JetbrainsRpcService Service represents the JRebel RPC service.

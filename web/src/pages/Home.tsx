@@ -1,14 +1,14 @@
 import React from 'react';
-import { Typography, Row, Col, Card, Button } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import {Button, Card, Col, Row, Typography} from 'antd';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import {
-  CodeOutlined,
-  BranchesOutlined,
-  DesktopOutlined,
-  CodeSandboxOutlined,
-  AppstoreOutlined,
+    AppstoreOutlined,
+    BranchesOutlined,
+    CodeOutlined,
+    CodeSandboxOutlined,
+    DesktopOutlined,
 } from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;

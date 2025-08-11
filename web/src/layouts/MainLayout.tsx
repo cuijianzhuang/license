@@ -1,22 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Layout, Menu, Button, Drawer, Tooltip } from 'antd';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { useTranslation } from 'react-i18next';
-import { 
-  MenuUnfoldOutlined,
-  AppstoreOutlined,
-  CodeOutlined,
-  BranchesOutlined,
-  CodeSandboxOutlined,
-  HomeOutlined,
-  DesktopOutlined,
-  UpCircleOutlined
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Button, Drawer, Layout, Menu, Tooltip} from 'antd';
+import {Outlet, useLocation, useNavigate} from 'react-router-dom';
+import styled, {keyframes} from 'styled-components';
+import {useTranslation} from 'react-i18next';
+import {
+    AppstoreOutlined,
+    BranchesOutlined,
+    CodeOutlined,
+    CodeSandboxOutlined,
+    DesktopOutlined,
+    HomeOutlined,
+    MenuUnfoldOutlined,
+    UpCircleOutlined
 } from '@ant-design/icons';
-import { responsive } from '../styles/theme';
+import {responsive} from '../styles/theme';
 import LanguageSelector from '../components/LanguageSelector';
-import { server } from '../api';
-import { keyframes } from 'styled-components';
+import {server} from '../api';
 
 const { Header, Content } = Layout;
 

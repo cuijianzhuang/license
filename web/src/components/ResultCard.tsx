@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
-import {Card, Button, Typography, Divider, message, Space, Tooltip, App} from 'antd';
-import { CopyOutlined, CheckOutlined, DownloadOutlined } from '@ant-design/icons';
+import {App, Button, Card, Divider, message, Space, Tooltip, Typography} from 'antd';
+import {CheckOutlined, CopyOutlined, DownloadOutlined} from '@ant-design/icons';
 import {useTranslation} from "react-i18next";
-import { copyAndManageState } from '../utils/clipboard';
+import {copyAndManageState} from '../utils/clipboard';
 
 const { Title, Text } = Typography;
 

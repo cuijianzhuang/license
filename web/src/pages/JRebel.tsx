@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import {Typography, Card, Button, App} from 'antd';
+import React, {useEffect, useState} from 'react';
+import {App, Button, Card, Typography} from 'antd';
 import styled from 'styled-components';
-import { useTranslation } from 'react-i18next';
-import { 
-  CopyOutlined, 
-  CheckOutlined, 
-  ReloadOutlined 
-} from '@ant-design/icons';
+import {useTranslation} from 'react-i18next';
+import {CheckOutlined, CopyOutlined, ReloadOutlined} from '@ant-design/icons';
 import PageHeader from '../components/PageHeader';
 import UsageNotice from '../components/UsageNotice';
-import { jrebel } from '../api';
-import { copyAndManageState } from '../utils/clipboard';
+import {jrebel} from '../api';
+import {copyAndManageState} from '../utils/clipboard';
 
 const {Paragraph } = Typography;
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Select } from 'antd';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {Select} from 'antd';
+import {useTranslation} from 'react-i18next';
 
 // Helper function to map language code to HTML lang attribute
 const mapToHtmlLang = (language: string): string => {

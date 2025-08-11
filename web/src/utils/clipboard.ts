@@ -1,4 +1,4 @@
-import { NotificationInstance } from 'antd/es/notification/interface';
+import {NotificationInstance} from 'antd/es/notification/interface';
 
 /**
  * 复制文本到剪贴板

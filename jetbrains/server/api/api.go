@@ -1,9 +1,10 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"license/jetbrains/util"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // LicenseServerController defines the controller structure

@@ -1,9 +1,10 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"license/gitlab/entity"
 	"license/gitlab/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Controller defines the controller structure

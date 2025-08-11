@@ -1,4 +1,4 @@
-import { ThemeConfig } from 'antd';
+import {ThemeConfig} from 'antd';
 
 // 定义全局主题
 export const theme: ThemeConfig = {

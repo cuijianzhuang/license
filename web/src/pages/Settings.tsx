@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Card, Divider, Switch, Form, Input, Button, Select } from 'antd';
+import {Button, Card, Form, Input, Select, Switch, Typography} from 'antd';
 import styled from 'styled-components';
 import PageHeader from '../components/PageHeader';
 

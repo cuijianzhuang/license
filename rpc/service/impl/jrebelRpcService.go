@@ -9,9 +9,10 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"license/rpc/service"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // JrebelRpcService represents the JRebel RPC service.

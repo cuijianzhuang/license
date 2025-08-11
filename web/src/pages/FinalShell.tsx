@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import {Typography, Form, Button, Input, Card, App, Row, Col} from 'antd';
+import React, {useState} from 'react';
+import {App, Button, Card, Col, Form, Input, Row, Typography} from 'antd';
 import styled from 'styled-components';
-import { useTranslation } from 'react-i18next';
-import { CopyOutlined, CheckOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import {useTranslation} from 'react-i18next';
+import {CheckOutlined, CopyOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import PageHeader from '../components/PageHeader';
 import UsageNotice from '../components/UsageNotice';
-import { finalshell } from '../api';
-import { copyAndManageState } from '../utils/clipboard';
-import { FinalShellLicense } from '../api/finalshell';
+import {finalshell} from '../api';
+import {copyAndManageState} from '../utils/clipboard';
+import {FinalShellLicense} from '../api/finalshell';
 
 const { Paragraph } = Typography;
 

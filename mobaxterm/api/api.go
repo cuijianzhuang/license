@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"license/logger"
 	"license/mobaxterm/entity"
 	"license/utils/useragent"
@@ -19,17 +18,19 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
 // 优化配置常量
 const (
-	licenseCacheMaxSize   = 5000            // 最大缓存许可证数量
-	licenseCacheTTL       = 10 * time.Minute // 许可证缓存TTL
-	versionCacheMaxAge    = 5 * time.Minute  // 版本缓存时间
-	zipBufferPoolSize     = 100              // ZIP缓冲池大小
-	cleanupInterval       = 2 * time.Minute  // 清理间隔
-	maxConcurrency        = 150              // 最大并发数
+	licenseCacheMaxSize = 5000             // 最大缓存许可证数量
+	licenseCacheTTL     = 10 * time.Minute // 许可证缓存TTL
+	versionCacheMaxAge  = 5 * time.Minute  // 版本缓存时间
+	zipBufferPoolSize   = 100              // ZIP缓冲池大小
+	cleanupInterval     = 2 * time.Minute  // 清理间隔
+	maxConcurrency      = 150              // 最大并发数
 )
 
 // LicenseCacheEntry 许可证缓存条目
@@ -53,20 +54,20 @@ type VersionCache struct {
 
 // PerformanceStats 性能统计
 type PerformanceStats struct {
-	TotalRequests        int64     `json:"total_requests"`
-	LicenseCacheHits     int64     `json:"license_cache_hits"`
-	LicenseCacheMisses   int64     `json:"license_cache_misses"`
-	VersionCacheHits     int64     `json:"version_cache_hits"`
-	VersionCacheMisses   int64     `json:"version_cache_misses"`
-	AverageGenTime       int64     `json:"average_gen_time_ns"`
-	TotalGenTime         int64     `json:"total_gen_time_ns"`
-	LicenseCacheHitRate  float64   `json:"license_cache_hit_rate"`
-	VersionCacheHitRate  float64   `json:"version_cache_hit_rate"`
-	LastCleanup          time.Time `json:"last_cleanup"`
-	CurrentCacheSize     int64     `json:"current_cache_size"`
-	PoolObjectsInUse     int64     `json:"pool_objects_in_use"`
-	MemoryStats          MemoryStats `json:"memory_stats"`
-	LoadLevel            string    `json:"load_level"`
+	TotalRequests       int64       `json:"total_requests"`
+	LicenseCacheHits    int64       `json:"license_cache_hits"`
+	LicenseCacheMisses  int64       `json:"license_cache_misses"`
+	VersionCacheHits    int64       `json:"version_cache_hits"`
+	VersionCacheMisses  int64       `json:"version_cache_misses"`
+	AverageGenTime      int64       `json:"average_gen_time_ns"`
+	TotalGenTime        int64       `json:"total_gen_time_ns"`
+	LicenseCacheHitRate float64     `json:"license_cache_hit_rate"`
+	VersionCacheHitRate float64     `json:"version_cache_hit_rate"`
+	LastCleanup         time.Time   `json:"last_cleanup"`
+	CurrentCacheSize    int64       `json:"current_cache_size"`
+	PoolObjectsInUse    int64       `json:"pool_objects_in_use"`
+	MemoryStats         MemoryStats `json:"memory_stats"`
+	LoadLevel           string      `json:"load_level"`
 }
 
 // MemoryStats 内存使用统计
@@ -83,10 +84,10 @@ type MemoryStats struct {
 
 // Controller 优化版MobaXterm控制器
 type Controller struct {
-	licenseCache  *LicenseCache
-	versionCache  *VersionCache
-	stats         *PerformanceStats
-	mu            sync.RWMutex
+	licenseCache *LicenseCache
+	versionCache *VersionCache
+	stats        *PerformanceStats
+	mu           sync.RWMutex
 
 	// 对象池
 	zipBufferPool     sync.Pool
@@ -260,7 +261,7 @@ func (oc *Controller) FetchVersions(c *gin.Context) {
 	if !oc.versionCache.lastFetchTime.IsZero() &&
 		time.Since(oc.versionCache.lastFetchTime) < versionCacheMaxAge &&
 		len(oc.versionCache.versions) > 0 {
-		
+
 		atomic.AddInt64(&oc.stats.VersionCacheHits, 1)
 		versions := oc.versionCache.versions
 		oc.versionCache.mutex.RUnlock()
@@ -401,7 +402,7 @@ func (oc *Controller) GenerateLicense(c *gin.Context) {
 		if time.Since(entry.timestamp) < licenseCacheTTL {
 			atomic.AddInt64(&oc.stats.LicenseCacheHits, 1)
 			atomic.AddInt64(&oc.stats.TotalRequests, 1)
-			
+
 			c.Header("Content-Type", "application/zip")
 			c.Header("Content-Disposition", "attachment; filename=Custom.mxtpro")
 			c.Data(http.StatusOK, "application/zip", entry.zipData)
@@ -501,7 +502,7 @@ func (oc *Controller) generateOptimizedLicense(userType, count int, username str
 
 	// 创建ZIP文件
 	zipWriter := zip.NewWriter(zipBuffer)
-	
+
 	header := &zip.FileHeader{
 		Name:               "Pro.key",
 		Method:             zip.Store,
@@ -663,12 +664,12 @@ func (oc *Controller) HealthCheck(c *gin.Context) {
 	})
 
 	health := gin.H{
-		"status":          "ok",
-		"load_level":      loadLevel,
-		"memory_mb":       memStats.HeapAlloc / 1024 / 1024,
-		"goroutines":      runtime.NumGoroutine(),
-		"license_cache":   atomic.LoadInt64(&oc.licenseCache.entries),
-		"uptime":          time.Since(oc.stats.LastCleanup),
+		"status":        "ok",
+		"load_level":    loadLevel,
+		"memory_mb":     memStats.HeapAlloc / 1024 / 1024,
+		"goroutines":    runtime.NumGoroutine(),
+		"license_cache": atomic.LoadInt64(&oc.licenseCache.entries),
+		"uptime":        time.Since(oc.stats.LastCleanup),
 	}
 
 	switch loadLevel {

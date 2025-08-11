@@ -1,9 +1,10 @@
 package server
 
 import (
-	"github.com/gin-gonic/gin"
 	"license/sys"
 	v1 "license/v1"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Controller Package server provides the server controller for handling API requests.
