@@ -1,3 +1,4 @@
+//go:build ignore
 // +build ignore
 
 package main
@@ -11,8 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"license/mobaxterm/api"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -52,7 +54,7 @@ func setupOptimizedRouter(controller *api.OptimizedController) *gin.Engine {
 	r := gin.New()
 	// 应用限流中间件
 	r.Use(controller.RateLimitMiddleware())
-	
+
 	r.GET("/mobaxterm/versions", controller.OptimizedFetchVersions)
 	r.POST("/mobaxterm/generate", controller.OptimizedGenerateLicense)
 	r.GET("/mobaxterm/generate", controller.OptimizedGenerateLicense)
@@ -76,32 +78,32 @@ func runBenchmarkTests(originalRouter, optimizedRouter *gin.Engine) {
 
 	for _, tc := range testCases {
 		fmt.Printf("\n=== %s 性能测试 ===\n", tc.name)
-		
+
 		// 原始版本测试
 		fmt.Println("原始版本:")
 		originalTime := tc.testFunc(originalRouter, tc.endpoint, tc.method, 100)
-		
+
 		// 优化版本测试（无缓存）
 		if tc.name == "License Generation" {
 			clearCache(optimizedRouter)
 		}
 		fmt.Println("优化版本（无缓存）:")
 		optimizedNoCacheTime := tc.testFunc(optimizedRouter, tc.endpoint, tc.method, 100)
-		
+
 		// 优化版本测试（有缓存）
 		if tc.name == "License Generation" {
 			preloadLicenseCache(optimizedRouter, 10)
 		}
 		fmt.Println("优化版本（有缓存）:")
 		optimizedCachedTime := tc.testFunc(optimizedRouter, tc.endpoint, tc.method, 100)
-		
+
 		// 计算提升
 		noCacheImprovement := float64(originalTime) / float64(optimizedNoCacheTime)
 		cachedImprovement := float64(originalTime) / float64(optimizedCachedTime)
-		
+
 		fmt.Printf("无缓存优化倍数: %.2fx\n", noCacheImprovement)
 		fmt.Printf("缓存优化倍数: %.2fx\n", cachedImprovement)
-		
+
 		// 显示缓存统计
 		showCacheStats(optimizedRouter)
 	}
@@ -117,41 +119,41 @@ func runBenchmarkTests(originalRouter, optimizedRouter *gin.Engine) {
 
 func benchmarkLicenseGeneration(router *gin.Engine, endpoint, method string, iterations int) time.Duration {
 	start := time.Now()
-	
+
 	for i := 0; i < iterations; i++ {
 		req := createLicenseRequest(endpoint, method, i)
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			fmt.Printf("Request failed with status: %d\n", w.Code)
 		}
 	}
-	
+
 	elapsed := time.Since(start)
-	fmt.Printf("  %d 个请求用时: %v (平均: %v)\n", 
+	fmt.Printf("  %d 个请求用时: %v (平均: %v)\n",
 		iterations, elapsed, elapsed/time.Duration(iterations))
-	
+
 	return elapsed
 }
 
 func benchmarkVersionFetch(router *gin.Engine, endpoint, method string, iterations int) time.Duration {
 	start := time.Now()
-	
+
 	for i := 0; i < iterations; i++ {
 		req, _ := http.NewRequest(method, endpoint, nil)
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			fmt.Printf("Request failed with status: %d\n", w.Code)
 		}
 	}
-	
+
 	elapsed := time.Since(start)
-	fmt.Printf("  %d 个请求用时: %v (平均: %v)\n", 
+	fmt.Printf("  %d 个请求用时: %v (平均: %v)\n",
 		iterations, elapsed, elapsed/time.Duration(iterations))
-	
+
 	return elapsed
 }
 
@@ -164,7 +166,7 @@ func createLicenseRequest(endpoint, method string, seed int) *http.Request {
 	body := strings.NewReader(form.Encode())
 	req, _ := http.NewRequest(method, endpoint, body)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	
+
 	return req
 }
 
@@ -186,47 +188,47 @@ func showCacheStats(router *gin.Engine) {
 	req, _ := http.NewRequest("GET", "/mobaxterm/stats", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-	
+
 	fmt.Printf("缓存统计: %s\n", w.Body.String())
 }
 
 func runConcurrencyTest(originalRouter, optimizedRouter *gin.Engine) {
 	concurrencyLevels := []int{10, 50, 100}
 	requestsPerLevel := 100 // 减少请求数以避免生成太多许可证文件
-	
+
 	for _, concurrency := range concurrencyLevels {
 		fmt.Printf("\n并发数: %d\n", concurrency)
-		
+
 		// 原始版本
-		originalTime := runConcurrentRequests(originalRouter, "/mobaxterm/generate", "POST", 
+		originalTime := runConcurrentRequests(originalRouter, "/mobaxterm/generate", "POST",
 			concurrency, requestsPerLevel)
-		
+
 		// 优化版本
 		clearCache(optimizedRouter)
-		optimizedTime := runConcurrentRequests(optimizedRouter, "/mobaxterm/generate", "POST", 
+		optimizedTime := runConcurrentRequests(optimizedRouter, "/mobaxterm/generate", "POST",
 			concurrency, requestsPerLevel)
-		
+
 		improvement := float64(originalTime) / float64(optimizedTime)
-		
-		fmt.Printf("原始版本: %v (QPS: %.2f)\n", originalTime, 
+
+		fmt.Printf("原始版本: %v (QPS: %.2f)\n", originalTime,
 			float64(concurrency*requestsPerLevel)/originalTime.Seconds())
-		fmt.Printf("优化版本: %v (QPS: %.2f)\n", optimizedTime, 
+		fmt.Printf("优化版本: %v (QPS: %.2f)\n", optimizedTime,
 			float64(concurrency*requestsPerLevel)/optimizedTime.Seconds())
 		fmt.Printf("性能提升: %.2fx\n", improvement)
 	}
 }
 
-func runConcurrentRequests(router *gin.Engine, endpoint, method string, 
+func runConcurrentRequests(router *gin.Engine, endpoint, method string,
 	concurrency, requestsPerWorker int) time.Duration {
-	
+
 	var wg sync.WaitGroup
 	start := time.Now()
-	
+
 	for i := 0; i < concurrency; i++ {
 		wg.Add(1)
 		go func(workerID int) {
 			defer wg.Done()
-			
+
 			for j := 0; j < requestsPerWorker; j++ {
 				req := createLicenseRequest(endpoint, method, workerID*requestsPerWorker+j)
 				w := httptest.NewRecorder()
@@ -234,7 +236,7 @@ func runConcurrentRequests(router *gin.Engine, endpoint, method string,
 			}
 		}(i)
 	}
-	
+
 	wg.Wait()
 	return time.Since(start)
 }
@@ -242,36 +244,36 @@ func runConcurrentRequests(router *gin.Engine, endpoint, method string,
 func runStressTest(optimizedRouter *gin.Engine) {
 	duration := 5 * time.Second // 减少测试时间
 	maxConcurrency := 50        // 减少并发数
-	
+
 	fmt.Printf("运行 %v 持续压力测试，最大并发 %d\n", duration, maxConcurrency)
-	
+
 	var requestCount int64
 	var errorCount int64
-	
+
 	stopChan := make(chan struct{})
 	time.AfterFunc(duration, func() {
 		close(stopChan)
 	})
-	
+
 	start := time.Now()
 	var wg sync.WaitGroup
-	
+
 	for i := 0; i < maxConcurrency; i++ {
 		wg.Add(1)
 		go func(workerID int) {
 			defer wg.Done()
-			
+
 			requestID := 0
 			for {
 				select {
 				case <-stopChan:
 					return
 				default:
-					req := createLicenseRequest("/mobaxterm/generate", "POST", 
+					req := createLicenseRequest("/mobaxterm/generate", "POST",
 						workerID*10000+requestID)
 					w := httptest.NewRecorder()
 					optimizedRouter.ServeHTTP(w, req)
-					
+
 					requestCount++
 					if w.Code != http.StatusOK && w.Code != http.StatusTooManyRequests {
 						errorCount++
@@ -281,18 +283,18 @@ func runStressTest(optimizedRouter *gin.Engine) {
 			}
 		}(i)
 	}
-	
+
 	wg.Wait()
 	elapsed := time.Since(start)
-	
+
 	fmt.Printf("总请求数: %d\n", requestCount)
 	fmt.Printf("错误数: %d\n", errorCount)
 	fmt.Printf("平均QPS: %.2f\n", float64(requestCount)/elapsed.Seconds())
 	fmt.Printf("错误率: %.2f%%\n", float64(errorCount)/float64(requestCount)*100)
-	
+
 	// 显示最终缓存统计
 	showCacheStats(optimizedRouter)
-	
+
 	// 显示健康检查
 	fmt.Println("\n健康检查:")
 	req, _ := http.NewRequest("GET", "/mobaxterm/health", nil)
