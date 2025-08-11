@@ -10,43 +10,64 @@ import (
 	rpc "license/rpc/controller"
 	"license/server"
 	"strings"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
-// List of API path prefixes
-var apiPrefixes = []string{
-	"/server/",
-	"/final-shell/",
-	"/gitlab/",
-	"/rpc/",
-	"/jrebel/",
-	"/agent/",
-	"/mobaxterm/",
-	"/jetbrains/",
-}
-
-// IsAPIPath determines if the given path is an API path
-func IsAPIPath(path string) bool {
-	for _, prefix := range apiPrefixes {
-		if strings.HasPrefix(path, prefix) {
-			return true
-		}
+// api path matching using map for O(1) lookups
+var (
+	apiPrefixMap = map[string]bool{
+		"/server/":      true,
+		"/final-shell/": true,
+		"/gitlab/":      true,
+		"/rpc/":         true,
+		"/jrebel/":      true,
+		"/agent/":       true,
+		"/mobaxterm/":   true,
+		"/jetbrains/":   true,
 	}
-	return false
+	apiEngine *gin.Engine
+	initOnce  sync.Once
+)
+
+// IsAPIPath determines if the given path is an API path using optimized lookup
+func IsAPIPath(path string) bool {
+	if path == "" || path[0] != '/' {
+		return false
+	}
+
+	// Find the second slash to extract the prefix
+	secondSlash := strings.IndexByte(path[1:], '/')
+	if secondSlash == -1 {
+		return false
+	}
+
+	// Extract prefix including trailing slash
+	prefix := path[:secondSlash+2] // +2 because IndexByte returns relative to path[1:]
+	return apiPrefixMap[prefix]
 }
 
-// HandleAPIRequest handles API requests
+// GetAPIEngine returns the singleton API engine, creating it if necessary
+func GetAPIEngine() *gin.Engine {
+	initOnce.Do(func() {
+		gin.SetMode(gin.ReleaseMode)
+		apiEngine = gin.New()
+
+		// Add recovery middleware
+		apiEngine.Use(gin.Recovery())
+
+		// Set up API routes
+		apiGroup := apiEngine.Group("/")
+		SetupRouter(apiGroup)
+	})
+	return apiEngine
+}
+
+// HandleAPIRequest handles API requests using the singleton engine
 func HandleAPIRequest(c *gin.Context) {
-	// Create a temporary routing engine to handle the request
-	tmpEngine := gin.New()
-	tmpGroup := tmpEngine.Group("/")
-
-	// Set up the router
-	SetupRouter(tmpGroup)
-
-	// Handle the request
-	tmpEngine.HandleContext(c)
+	engine := GetAPIEngine()
+	engine.HandleContext(c)
 }
 
 func SetupRouter(r *gin.RouterGroup) {
