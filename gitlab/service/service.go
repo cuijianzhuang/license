@@ -8,8 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	gorsa "github.com/Lyafei/go-rsa"
-	"github.com/gin-gonic/gin"
 	"io"
 	"license/config"
 	"license/crypto"
@@ -20,6 +18,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	gorsa "github.com/Lyafei/go-rsa"
+	"github.com/gin-gonic/gin"
 )
 
 // addOn is a map of add-on features with their respective limits
