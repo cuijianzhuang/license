@@ -1,7 +1,7 @@
-package api
+package v1
 
 import (
-	"license/jetbrains/code/service"
+	"license/jetbrains/code/service/v1"
 	"license/jetbrains/util"
 	"license/logger"
 	"strings"
@@ -21,7 +21,7 @@ func NewController() *Controller {
 // FetchProduceLatest fetches the latest activation codes
 func (controller *Controller) FetchProduceLatest(c *gin.Context) {
 	go func() {
-		productService := service.NewProductService()
+		productService := v1.NewProductService()
 		err := productService.FetchLatest()
 		if err != nil {
 			logger.Error("Failed to fetch latest product:", err)
@@ -37,7 +37,7 @@ func (controller *Controller) FetchProduceLatest(c *gin.Context) {
 // FetchPluginLatest fetches the latest plugins
 func (controller *Controller) FetchPluginLatest(c *gin.Context) {
 	go func() {
-		pluginService := service.NewPluginService()
+		pluginService := v1.NewPluginService()
 		err := pluginService.FetchLatest()
 		if err != nil {
 			logger.Error("Failed to fetch latest plugin:", err)
@@ -63,7 +63,7 @@ func (controller *Controller) Generate(c *gin.Context) {
 	}
 
 	// Generate license
-	activationCode, err := service.GenerateLicense(licenseeName, effectiveDate, codesArray)
+	activationCode, err := v1.GenerateLicense(licenseeName, effectiveDate, codesArray)
 	if err != nil {
 		logger.Error("Failed to generate license:", err)
 		c.String(500, "Failed to generate license")

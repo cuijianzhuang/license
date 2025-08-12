@@ -1,12 +1,12 @@
-package api
+package v2
 
 import (
 	"fmt"
+	v2 "license/jetbrains/code/service/v2"
 	"net/http"
 	"strings"
 	"time"
 
-	"license/jetbrains/service"
 	"license/jetbrains/types"
 	"license/logger"
 	v1 "license/v1"
@@ -16,17 +16,17 @@ import (
 
 // Controller handles JetBrains license API endpoints
 type Controller struct {
-	generator      *service.LicenseGenerator
-	productService *service.ProductService
-	pluginService  *service.PluginService
+	generator      *v2.LicenseGenerator
+	productService *v2.ProductService
+	pluginService  *v2.PluginService
 }
 
 // NewController creates a new JetBrains controller
 func NewController() *Controller {
 	return &Controller{
-		generator:      service.NewLicenseGenerator(),
-		productService: service.NewProductService(),
-		pluginService:  service.NewPluginService(),
+		generator:      v2.NewLicenseGenerator(),
+		productService: v2.NewProductService(),
+		pluginService:  v2.NewPluginService(),
 	}
 }
 
@@ -178,13 +178,13 @@ func (c *Controller) HealthCheck(ctx *gin.Context) {
 
 // ServerController handles JetBrains server API endpoints
 type ServerController struct {
-	generator *service.LicenseGenerator
+	generator *v2.LicenseGenerator
 }
 
 // NewServerController creates a new server controller
 func NewServerController() *ServerController {
 	return &ServerController{
-		generator: service.NewLicenseGenerator(),
+		generator: v2.NewLicenseGenerator(),
 	}
 }
 

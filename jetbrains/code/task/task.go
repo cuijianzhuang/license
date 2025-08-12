@@ -1,19 +1,19 @@
 package task
 
 import (
-	"license/jetbrains/code/service"
+	v2 "license/jetbrains/code/service/v2"
 	"license/logger"
 )
 
 type Task struct {
-	ProductService service.ProductService
-	PluginService  service.PluginService
+	ProductService *v2.ProductService
+	PluginService  *v2.PluginService
 }
 
 func NewTask() *Task {
 	return &Task{
-		ProductService: service.NewProductService(),
-		PluginService:  service.NewPluginService(),
+		ProductService: v2.NewProductService(),
+		PluginService:  v2.NewPluginService(),
 	}
 
 }
