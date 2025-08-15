@@ -89,8 +89,18 @@ func noRouteHandler() gin.HandlerFunc {
 		}
 
 		// For non-API requests, serve SPA index.html
-		c.Request.URL.Path = "/"
-		c.Next()
+		// This ensures that all frontend routes (like /mobaxterm) serve the main app
+		indexHTML, err := EmbedFrontendFS.ReadFile("web/build/index.html")
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Failed to load index.html")
+			return
+		}
+		
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		c.Header("Pragma", "no-cache")
+		c.Header("Expires", "0")
+		c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
 	}
 }
 
