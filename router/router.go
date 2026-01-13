@@ -43,6 +43,10 @@ func SetupExternalRoutes(r *gin.RouterGroup) {
 		jrebelGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
 		jrebelGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
 		jrebelGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
+		jrebelGroup.GET("/performance-stats", jrebelLeasesApi.GetPerformanceStats)
+		jrebelGroup.POST("/clear-cache", jrebelLeasesApi.ClearCache)
+		jrebelGroup.GET("/health", jrebelLeasesApi.HealthCheck)
+		jrebelGroup.POST("/force-gc", jrebelLeasesApi.ForceGC)
 		jrebelGroup.POST("/leases/1", func(c *gin.Context) {
 			c.Status(405)
 		})
@@ -64,7 +68,7 @@ func SetupExternalRoutes(r *gin.RouterGroup) {
 
 // SetupRouter 注册所有 API 路由（用于 /api/* 前缀）
 func SetupRouter(r *gin.RouterGroup) {
-	// 先注册外部路由
+	// 注册外部工具路由（包含 jrebel）
 	SetupExternalRoutes(r)
 
 	// final-shell
@@ -81,27 +85,6 @@ func SetupRouter(r *gin.RouterGroup) {
 	gitlabGroup := r.Group("/gitlab")
 	{
 		gitlabGroup.POST("/generate", gitlabApi.Generate)
-	}
-
-	// jrebel
-	jrebelLeasesApi, _ := jrebel.NewLeasesController()
-	jrebelIndexApi := jrebel.NewIndexController()
-
-	jrebelGroup := r.Group("/jrebel")
-	{
-		jrebelGroup.GET("/", jrebelIndexApi.IndexHandler)
-		jrebelGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
-		jrebelGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
-		jrebelGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
-		jrebelGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
-		jrebelGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
-		jrebelGroup.GET("/performance-stats", jrebelLeasesApi.GetPerformanceStats)
-		jrebelGroup.POST("/clear-cache", jrebelLeasesApi.ClearCache)
-		jrebelGroup.GET("/health", jrebelLeasesApi.HealthCheck)
-		jrebelGroup.POST("/force-gc", jrebelLeasesApi.ForceGC)
-		jrebelGroup.POST("/leases/1", func(c *gin.Context) {
-			c.Status(405)
-		})
 	}
 
 	// mobaxterm
