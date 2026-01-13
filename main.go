@@ -180,10 +180,14 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	// Set up API routes under /api prefix only
-	// (root paths like /jrebel conflict with frontend SPA routes)
+	// Set up API routes under /api prefix
 	apiGroup := r.Group("/api")
 	router.SetupRouter(apiGroup)
+
+	// Register external tool routes at root path (no conflict with frontend)
+	// Includes: /rpc/*, /agent/*, /server/*
+	rootGroup := r.Group("")
+	router.SetupExternalRoutes(rootGroup)
 
 	// Configure static file server with caching
 	if err := setupStaticFileServer(r); err != nil {

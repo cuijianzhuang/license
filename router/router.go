@@ -12,13 +12,45 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(r *gin.RouterGroup) {
+// SetupExternalRoutes 注册外部工具需要的根路径 API（不与前端页面冲突）
+// 包括：/rpc/*, /agent/*, /server/*
+func SetupExternalRoutes(r *gin.RouterGroup) {
+	// server
 	serverApi := server.NewServerController()
 	serverGroup := r.Group("/server")
 	{
 		serverGroup.GET("/status", serverApi.GetStatus)
 		serverGroup.GET("/version", serverApi.GetVersion)
 	}
+
+	// rpc - JetBrains IDE 激活接口
+	rpcApi := rpc.NewRpcController()
+	rpcGroup := r.Group("/rpc")
+	{
+		rpcGroup.GET("/ping.action", rpcApi.Ping)
+		rpcGroup.GET("/obtainTicket.action", rpcApi.ObtainTicket)
+		rpcGroup.GET("/releaseTicket.action", rpcApi.ReleaseTicket)
+	}
+
+	// agent - JRebel agent 接口
+	jrebelLeasesApi, _ := jrebel.NewLeasesController()
+	agentGroup := r.Group("/agent")
+	{
+		agentGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
+		agentGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
+		agentGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
+		agentGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
+		agentGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
+		agentGroup.POST("/leases/1", func(c *gin.Context) {
+			c.Status(405)
+		})
+	}
+}
+
+// SetupRouter 注册所有 API 路由（用于 /api/* 前缀）
+func SetupRouter(r *gin.RouterGroup) {
+	// 先注册外部路由
+	SetupExternalRoutes(r)
 
 	// final-shell
 	finalShellApi := finalshell.NewController()
@@ -36,15 +68,6 @@ func SetupRouter(r *gin.RouterGroup) {
 		gitlabGroup.POST("/generate", gitlabApi.Generate)
 	}
 
-	// rpc
-	rpcApi := rpc.NewRpcController()
-	rpcGroup := r.Group("/rpc")
-	{
-		rpcGroup.GET("/ping.action", rpcApi.Ping)
-		rpcGroup.GET("/obtainTicket.action", rpcApi.ObtainTicket)
-		rpcGroup.GET("/releaseTicket.action", rpcApi.ReleaseTicket)
-	}
-
 	// jrebel
 	jrebelLeasesApi, _ := jrebel.NewLeasesController()
 	jrebelIndexApi := jrebel.NewIndexController()
@@ -52,32 +75,16 @@ func SetupRouter(r *gin.RouterGroup) {
 	jrebelGroup := r.Group("/jrebel")
 	{
 		jrebelGroup.GET("/", jrebelIndexApi.IndexHandler)
-
-		// 使用优化版本（现在是默认版本）
 		jrebelGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
 		jrebelGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
 		jrebelGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
 		jrebelGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
 		jrebelGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
-		// 优化版本专有端点
 		jrebelGroup.GET("/performance-stats", jrebelLeasesApi.GetPerformanceStats)
 		jrebelGroup.POST("/clear-cache", jrebelLeasesApi.ClearCache)
 		jrebelGroup.GET("/health", jrebelLeasesApi.HealthCheck)
 		jrebelGroup.POST("/force-gc", jrebelLeasesApi.ForceGC)
-
 		jrebelGroup.POST("/leases/1", func(c *gin.Context) {
-			c.Status(405)
-		})
-	}
-	jrebelAgentGroup := r.Group("/agent")
-	{
-		jrebelAgentGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
-		jrebelAgentGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
-		jrebelAgentGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
-		jrebelAgentGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
-		jrebelAgentGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
-
-		jrebelAgentGroup.POST("/leases/1", func(c *gin.Context) {
 			c.Status(405)
 		})
 	}
