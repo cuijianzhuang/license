@@ -4,6 +4,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"io/fs"
 	"license/config"
 	"license/cron"
 	"license/initialize"
@@ -11,76 +12,53 @@ import (
 	"license/router"
 	"license/sys"
 	"net/http"
+	"path/filepath"
 	"strings"
-	"sync"
-	"time"
 
-	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
 //go:embed web/build
 var EmbedFrontendFS embed.FS
 
-// Cache for path checks to improve performance
-var (
-	pathCache = make(map[string]bool)
-	cacheMu   sync.RWMutex
-	cacheSize = 1000 // Maximum cache entries
-)
+// 预加载的 index.html 内容
+var indexHTMLContent []byte
 
-// isAPIPathCached checks if a path is an API path with caching
-func isAPIPathCached(path string) bool {
-	cacheMu.RLock()
-	if cached, exists := pathCache[path]; exists {
-		cacheMu.RUnlock()
-		return cached
-	}
-	cacheMu.RUnlock()
-
-	// Check if it's an API path
-	isAPI := router.IsAPIPath(path)
-
-	// Cache the result if cache is not full
-	cacheMu.Lock()
-	if len(pathCache) < cacheSize {
-		pathCache[path] = isAPI
-	}
-	cacheMu.Unlock()
-
-	return isAPI
+// 静态资源扩展名集合（用于缓存判断）
+var staticExtensions = map[string]bool{
+	".js": true, ".css": true, ".png": true, ".jpg": true, ".jpeg": true,
+	".gif": true, ".svg": true, ".ico": true, ".woff": true, ".woff2": true,
+	".ttf": true, ".eot": true, ".map": true, ".webp": true,
 }
 
-// apiMiddleware is an optimized middleware for API request handling
-func apiMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		path := c.Request.URL.Path
-
-		// Skip if already has /api/ prefix - these are handled by apiGroup
-		if strings.HasPrefix(path, "/api/") {
-			c.Next()
-			return
-		}
-
-		// Use cached API path check
-		if isAPIPathCached(path) {
-			c.Request.URL.Path = path
-			router.HandleAPIRequest(c)
-			c.Abort()
-			return
-		}
-
-		c.Next()
+// isStaticAsset 判断是否为静态资源
+func isStaticAsset(path string) bool {
+	if strings.Contains(path, "/static/") {
+		return true
 	}
+	return staticExtensions[filepath.Ext(path)]
 }
 
-// noRouteHandler handles 404s with better performance
+// setNoCacheHeaders 设置禁用缓存的响应头
+func setNoCacheHeaders(c *gin.Context) {
+	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Header("Pragma", "no-cache")
+	c.Header("Expires", "0")
+}
+
+// serveIndexHTML 返回预加载的 index.html
+func serveIndexHTML(c *gin.Context) {
+	setNoCacheHeaders(c)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTMLContent)
+}
+
+// noRouteHandler handles 404s for SPA support
 func noRouteHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 
-		// Fast check for API paths using string prefix
-		if len(path) >= 4 && path[:4] == "/api" {
+		// API 路径返回 404 JSON
+		if strings.HasPrefix(path, "/api") {
 			c.JSON(http.StatusNotFound, gin.H{
 				"code":    "PAGE_NOT_FOUND",
 				"message": "API endpoint not found",
@@ -88,62 +66,70 @@ func noRouteHandler() gin.HandlerFunc {
 			return
 		}
 
-		// For non-API requests, serve SPA index.html
-		// This ensures that all frontend routes (like /mobaxterm) serve the main app
-		indexHTML, err := EmbedFrontendFS.ReadFile("web/build/index.html")
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Failed to load index.html")
-			return
-		}
-		
-		c.Header("Content-Type", "text/html; charset=utf-8")
-		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-		c.Header("Pragma", "no-cache")
-		c.Header("Expires", "0")
-		c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
+		// SPA 路由返回 index.html
+		serveIndexHTML(c)
 	}
 }
 
-// setupStaticFileServer configures static file serving with caching
-func setupStaticFileServer(r *gin.Engine) error {
-	embedFS, err := static.EmbedFolder(EmbedFrontendFS, "web/build")
-	if err != nil {
-		return fmt.Errorf("failed to load embedded frontend files: %w", err)
-	}
-
-	// Add caching middleware for static files
-	r.Use(func(c *gin.Context) {
+// staticCacheMiddleware 静态资源缓存中间件
+func staticCacheMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 
-		// Add cache headers for static assets
-		if strings.Contains(path, "/static/") ||
-			strings.HasSuffix(path, ".js") ||
-			strings.HasSuffix(path, ".css") ||
-			strings.HasSuffix(path, ".png") ||
-			strings.HasSuffix(path, ".jpg") ||
-			strings.HasSuffix(path, ".jpeg") ||
-			strings.HasSuffix(path, ".gif") ||
-			strings.HasSuffix(path, ".svg") ||
-			strings.HasSuffix(path, ".ico") ||
-			strings.HasSuffix(path, ".woff") ||
-			strings.HasSuffix(path, ".woff2") ||
-			strings.HasSuffix(path, ".ttf") ||
-			strings.HasSuffix(path, ".eot") {
-
-			// Cache static assets for 1 year
+		if isStaticAsset(path) {
+			// 静态资源缓存 1 年
 			c.Header("Cache-Control", "public, max-age=31536000, immutable")
-			c.Header("Expires", time.Now().Add(365*24*time.Hour).Format(http.TimeFormat))
 		} else if path == "/" || path == "/index.html" {
-			// Don't cache the main HTML file to ensure updates are loaded
-			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-			c.Header("Pragma", "no-cache")
-			c.Header("Expires", "0")
+			setNoCacheHeaders(c)
 		}
 
 		c.Next()
+	}
+}
+
+// setupStaticFileServer configures static file serving
+func setupStaticFileServer(r *gin.Engine) error {
+	// 获取 web/build 子文件系统
+	webFS, err := fs.Sub(EmbedFrontendFS, "web/build")
+	if err != nil {
+		return fmt.Errorf("failed to get sub filesystem: %w", err)
+	}
+
+	// 添加缓存中间件
+	r.Use(staticCacheMiddleware())
+
+	// 预创建 FileServer
+	fileServer := http.FileServer(http.FS(webFS))
+
+	// 静态文件服务中间件
+	r.Use(func(c *gin.Context) {
+		path := c.Request.URL.Path
+
+		// 跳过 API 请求
+		if strings.HasPrefix(path, "/api") {
+			c.Next()
+			return
+		}
+
+		// 尝试打开文件（去掉开头的 /）
+		filePath := strings.TrimPrefix(path, "/")
+		if filePath == "" {
+			filePath = "index.html"
+		}
+
+		file, err := webFS.Open(filePath)
+		if err == nil {
+			_ = file.Close()
+			// 文件存在，使用 FileServer 处理
+			fileServer.ServeHTTP(c.Writer, c.Request)
+			c.Abort()
+			return
+		}
+
+		// 文件不存在，继续到 NoRoute handler（返回 index.html 支持 SPA 路由）
+		c.Next()
 	})
 
-	r.Use(static.Serve("/", embedFS))
 	return nil
 }
 
@@ -178,7 +164,15 @@ func main() {
 	// Initialize scheduled tasks
 	cron.InitCron()
 
-	// Set up GIN router with optimized configuration
+	// 预加载 index.html
+	var err error
+	indexHTMLContent, err = EmbedFrontendFS.ReadFile("web/build/index.html")
+	if err != nil {
+		logger.Error("Failed to preload index.html: %v", err)
+		return
+	}
+
+	// Set up GIN router
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
@@ -186,32 +180,12 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	// Add compression middleware for better performance
-	r.Use(func(c *gin.Context) {
-		// Enable gzip compression for text responses
-		if !strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
-			c.Next()
-			return
-		}
-
-		// Set compression header for text-based content
-		contentType := c.GetHeader("Content-Type")
-		if strings.Contains(contentType, "application/json") ||
-			strings.Contains(contentType, "text/") ||
-			strings.Contains(contentType, "application/javascript") ||
-			strings.Contains(contentType, "application/xml") {
-			c.Header("Content-Encoding", "gzip")
-		}
-
-		c.Next()
-	})
-
-	// Set up API routes under the /api prefix
+	// Set up API routes - register both /api/* and root paths
 	apiGroup := r.Group("/api")
 	router.SetupRouter(apiGroup)
 
-	// Use middleware for API request interception
-	r.Use(apiMiddleware())
+	rootGroup := r.Group("")
+	router.SetupRouter(rootGroup)
 
 	// Configure static file server with caching
 	if err := setupStaticFileServer(r); err != nil {

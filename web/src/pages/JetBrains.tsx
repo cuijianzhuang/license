@@ -492,40 +492,6 @@ const JetBrains: React.FC = () => {
               </div>
             )}
 
-            {license.licenseId && (
-              <div style={{ marginTop: 16 }}>
-                <LabelText>{t('jetbrains.licenseId') || 'License ID'}:</LabelText>
-                <LicenseContent>
-                  {license.licenseId}
-                  <ButtonContainer>
-                    <CopyButton
-                      size="small"
-                      type="primary"
-                      ghost
-                      icon={copying['licenseId'] ? <CheckOutlined /> : <CopyOutlined />}
-                      onClick={() => copyToClipboard('licenseId', license.licenseId || '')}
-                    />
-                  </ButtonContainer>
-                </LicenseContent>
-              </div>
-            )}
-
-            {(license.expiresAt || license.generatedAt) && (
-              <div style={{ marginTop: 16 }}>
-                {license.expiresAt && (
-                  <div style={{ marginBottom: 8 }}>
-                    <LabelText>{t('jetbrains.expiresAt') || 'Expires At'}:</LabelText>
-                    <Text style={{ marginLeft: 8 }}>{license.expiresAt}</Text>
-                  </div>
-                )}
-                {license.generatedAt && (
-                  <div>
-                    <LabelText>{t('jetbrains.generatedAt') || 'Generated At'}:</LabelText>
-                    <Text style={{ marginLeft: 8 }}>{license.generatedAt}</Text>
-                  </div>
-                )}
-              </div>
-            )}
           </Space>
         </LicenseResultCard>
       )}

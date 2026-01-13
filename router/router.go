@@ -8,66 +8,9 @@ import (
 	mobaxterm "license/mobaxterm/api"
 	rpc "license/rpc/controller"
 	"license/server"
-	"strings"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
-
-// api path matching using map for O(1) lookups
-var (
-	apiPrefixMap = map[string]bool{
-		"/server/":      true,
-		"/final-shell/": true,
-		"/gitlab/":      true,
-		"/rpc/":         true,
-		"/jrebel/":      true,
-		"/agent/":       true,
-		"/mobaxterm/":   true,
-		"/jetbrains/":   true,
-	}
-	apiEngine *gin.Engine
-	initOnce  sync.Once
-)
-
-// IsAPIPath determines if the given path is an API path using optimized lookup
-func IsAPIPath(path string) bool {
-	if path == "" || path[0] != '/' {
-		return false
-	}
-
-	// Find the second slash to extract the prefix
-	secondSlash := strings.IndexByte(path[1:], '/')
-	if secondSlash == -1 {
-		return false
-	}
-
-	// Extract prefix including trailing slash
-	prefix := path[:secondSlash+2] // +2 because IndexByte returns relative to path[1:]
-	return apiPrefixMap[prefix]
-}
-
-// GetAPIEngine returns the singleton API engine, creating it if necessary
-func GetAPIEngine() *gin.Engine {
-	initOnce.Do(func() {
-		gin.SetMode(gin.ReleaseMode)
-		apiEngine = gin.New()
-
-		// Add recovery middleware
-		apiEngine.Use(gin.Recovery())
-
-		// Set up API routes
-		apiGroup := apiEngine.Group("/")
-		SetupRouter(apiGroup)
-	})
-	return apiEngine
-}
-
-// HandleAPIRequest handles API requests using the singleton engine
-func HandleAPIRequest(c *gin.Context) {
-	engine := GetAPIEngine()
-	engine.HandleContext(c)
-}
 
 func SetupRouter(r *gin.RouterGroup) {
 	serverApi := server.NewServerController()
