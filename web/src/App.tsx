@@ -46,11 +46,11 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
-              <Route path="jetbrains" element={<JetBrains />} />
-              <Route path="gitlab" element={<GitLab />} />
-              <Route path="finalshell" element={<FinalShell />} />
-              <Route path="mobaxterm" element={<MobaXterm />} />
-              <Route path="jrebel" element={<JRebel />} />
+              <Route path="page/jetbrains" element={<JetBrains />} />
+              <Route path="page/gitlab" element={<GitLab />} />
+              <Route path="page/finalshell" element={<FinalShell />} />
+              <Route path="page/mobaxterm" element={<MobaXterm />} />
+              <Route path="page/jrebel" element={<JRebel />} />
             </Route>
           </Routes>
         </BrowserRouter>

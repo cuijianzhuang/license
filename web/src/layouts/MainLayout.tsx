@@ -216,27 +216,27 @@ const MainLayout: React.FC = () => {
       label: t('nav.home'),
     },
     {
-      key: '/jetbrains',
+      key: '/page/jetbrains',
       icon: <CodeOutlined />,
       label: t('nav.jetbrains'),
     },
     {
-      key: '/jrebel',
+      key: '/page/jrebel',
       icon: <AppstoreOutlined />,
       label: t('nav.jrebel'),
     },
     {
-      key: '/gitlab',
+      key: '/page/gitlab',
       icon: <BranchesOutlined />,
       label: t('nav.gitlab'),
     },
     {
-      key: '/finalshell',
+      key: '/page/finalshell',
       icon: <DesktopOutlined />,
       label: t('nav.finalshell'),
     },
     {
-      key: '/mobaxterm',
+      key: '/page/mobaxterm',
       icon: <CodeSandboxOutlined />,
       label: t('nav.mobaxterm'),
     },

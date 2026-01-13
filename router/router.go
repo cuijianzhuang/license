@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupExternalRoutes 注册外部工具需要的根路径 API（不与前端页面冲突）
-// 包括：/rpc/*, /agent/*, /server/*
+// SetupExternalRoutes 注册外部工具需要的根路径 API（前端页面已改为 /page/* 前缀）
+// 包括：/rpc/*, /agent/*, /server/*, /jrebel/*
 func SetupExternalRoutes(r *gin.RouterGroup) {
 	// server
 	serverApi := server.NewServerController()
@@ -32,8 +32,23 @@ func SetupExternalRoutes(r *gin.RouterGroup) {
 		rpcGroup.GET("/releaseTicket.action", rpcApi.ReleaseTicket)
 	}
 
-	// agent - JRebel agent 接口
+	// jrebel - JRebel 激活接口
 	jrebelLeasesApi, _ := jrebel.NewLeasesController()
+	jrebelIndexApi := jrebel.NewIndexController()
+	jrebelGroup := r.Group("/jrebel")
+	{
+		jrebelGroup.GET("/", jrebelIndexApi.IndexHandler)
+		jrebelGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
+		jrebelGroup.POST("/leases", jrebelLeasesApi.LeasesHandler)
+		jrebelGroup.POST("/validate-connection", jrebelLeasesApi.ValidateHandler)
+		jrebelGroup.POST("/features", jrebelLeasesApi.ValidateHandler)
+		jrebelGroup.GET("/features", jrebelLeasesApi.ValidateHandler)
+		jrebelGroup.POST("/leases/1", func(c *gin.Context) {
+			c.Status(405)
+		})
+	}
+
+	// agent - JRebel agent 接口（兼容路径）
 	agentGroup := r.Group("/agent")
 	{
 		agentGroup.DELETE("/leases/1", jrebelLeasesApi.Leases1Handler)
