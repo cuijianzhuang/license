@@ -184,8 +184,8 @@ func main() {
 	apiGroup := r.Group("/api")
 	router.SetupRouter(apiGroup)
 
-	// Register external tool routes at root path (no conflict with frontend)
-	// Includes: /rpc/*, /agent/*, /server/*
+	// Register external tool routes at root path (frontend uses /page/* prefix)
+	// Includes: /rpc/*, /agent/*, /server/*, /jrebel/*
 	rootGroup := r.Group("")
 	router.SetupExternalRoutes(rootGroup)
 
