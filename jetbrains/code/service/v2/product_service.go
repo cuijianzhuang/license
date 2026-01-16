@@ -171,10 +171,10 @@ func (s *PluginService) GetAll() ([]entity.PluginEntity, error) {
 }
 
 const (
-	paidPluginsURL     = "https://plugins.jetbrains.com/api/searchPlugins?excludeTags=theme&max=500&offset=0&orderBy=downloads&pricingModels=PAID"
-	freemiumPluginsURL = "https://plugins.jetbrains.com/api/searchPlugins?excludeTags=theme&max=500&offset=0&orderBy=downloads&pricingModels=FREEMIUM"
-	pluginDetailURL    = "https://plugins.jetbrains.com/api/plugins/"
-	userAgent          = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+	pluginsBaseURL  = "https://plugins.jetbrains.com/api/searchPlugins?excludeTags=theme&max=24&offset=%d&orderBy=downloads&pricingModels=%s"
+	pluginDetailURL = "https://plugins.jetbrains.com/api/plugins/"
+	maxPerPage      = 24
+	userAgent       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 )
 
 // GetByCode retrieves a plugin by its code
@@ -196,63 +196,99 @@ func (s *PluginService) GetByCode(code string) (*entity.PluginEntity, error) {
 	return nil, fmt.Errorf("plugin not found: %s", code)
 }
 
-// fetchPlugins fetches plugins from a specific URL
-func (s *PluginService) fetchPlugins(url string) ([]*entity.PluginEntity, error) {
+// fetchPlugins fetches plugins from external source with pagination
+func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntity, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		logger.Error("Error creating request:", err)
-		return nil, err
-	}
 
-	req.Header.Set("User-Agent", userAgent)
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.Error("Error on request:", err)
-		return nil, err
+	// Phase 1: Fetch all plugin IDs with pagination
+	type pluginInfo struct {
+		ID   uint64
+		Name string
 	}
-	defer resp.Body.Close()
+	var allPluginInfos []pluginInfo
+	offset := 0
 
-	if resp.StatusCode != http.StatusOK {
-		logger.Error(fmt.Sprintf("Failed to fetch plugins, status code: %d", resp.StatusCode), nil)
-		return nil, fmt.Errorf("failed to fetch plugins, status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Error("Error reading response body:", err)
-		return nil, err
-	}
-
-	var data struct {
-		Plugins []struct {
-			ID   uint64 `json:"id"`
-			Name string `json:"name"`
+	for {
+		url := fmt.Sprintf(pluginsBaseURL, offset, pricingModel)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			logger.Error("Error creating request:", err)
+			return nil, err
 		}
+
+		req.Header.Set("User-Agent", userAgent)
+		resp, err := client.Do(req)
+		if err != nil {
+			logger.Error("Error on request:", err)
+			return nil, err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			logger.Error(fmt.Sprintf("Failed to fetch plugins, status code: %d", resp.StatusCode), nil)
+			return nil, fmt.Errorf("failed to fetch plugins, status code: %d", resp.StatusCode)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			logger.Error("Error reading response body:", err)
+			return nil, err
+		}
+
+		var data struct {
+			Total   int64 `json:"total"`
+			Plugins []struct {
+				ID   uint64 `json:"id"`
+				Name string `json:"name"`
+			}
+		}
+
+		err = json.Unmarshal(body, &data)
+		if err != nil {
+			logger.Error("Error unmarshaling JSON:", err)
+			return nil, err
+		}
+
+		if len(data.Plugins) == 0 {
+			break
+		}
+
+		for _, p := range data.Plugins {
+			allPluginInfos = append(allPluginInfos, pluginInfo{
+				ID:   p.ID,
+				Name: p.Name,
+			})
+		}
+
+		logger.Info(fmt.Sprintf("Fetched %d plugins (total: %d, offset: %d, pricingModel: %s)", len(data.Plugins), data.Total, offset, pricingModel))
+
+		if int64(offset+maxPerPage) >= data.Total {
+			break
+		}
+
+		offset += maxPerPage
 	}
 
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		logger.Error("Error unmarshaling JSON:", err)
-		return nil, err
-	}
+	// Phase 2: Fetch details for each plugin
+	allPlugins := make([]*entity.PluginEntity, 0, len(allPluginInfos))
+	for index, p := range allPluginInfos {
+		logger.Info(fmt.Sprintf("Total plugins to process: %d, currently processing #%d, Plugin ID: %d", len(allPluginInfos), index+1, p.ID))
 
-	plugins := make([]*entity.PluginEntity, 0, len(data.Plugins))
-	for index, p := range data.Plugins {
-		logger.Info(fmt.Sprintf("Total plugins to process: %d, currently processing #%d, Plugin ID: %d", len(data.Plugins), index+1, p.ID))
 		detailResp, err := client.Get(fmt.Sprintf("%s%d", pluginDetailURL, p.ID))
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error fetching plugin detail for ID %d", p.ID), err)
 			continue
 		}
-		defer detailResp.Body.Close()
 
 		if detailResp.StatusCode != http.StatusOK {
+			detailResp.Body.Close()
 			logger.Error(fmt.Sprintf("Failed to fetch plugin detail for ID %d, status: %d", p.ID, detailResp.StatusCode), nil)
 			continue
 		}
 
 		detailBody, err := io.ReadAll(detailResp.Body)
+		detailResp.Body.Close()
 		if err != nil {
 			logger.Error("Error reading plugin detail response:", err)
 			continue
@@ -271,7 +307,7 @@ func (s *PluginService) fetchPlugins(url string) ([]*entity.PluginEntity, error)
 			continue
 		}
 
-		plugins = append(plugins, &entity.PluginEntity{
+		allPlugins = append(allPlugins, &entity.PluginEntity{
 			PluginID:        p.ID,
 			PluginName:      detail.Name,
 			PluginCode:      detail.PurchaseInfo.ProductCode,
@@ -282,7 +318,7 @@ func (s *PluginService) fetchPlugins(url string) ([]*entity.PluginEntity, error)
 		time.Sleep(time.Duration(100+rand.Intn(400)) * time.Millisecond)
 	}
 
-	return plugins, nil
+	return allPlugins, nil
 }
 
 // FetchLatest fetches the latest plugins from external source
@@ -291,14 +327,14 @@ func (s *PluginService) FetchLatest() error {
 	defer s.mu.Unlock()
 
 	// First fetch paid plugins
-	paidPlugins, err := s.fetchPlugins(paidPluginsURL)
+	paidPlugins, err := s.fetchPlugins("PAID")
 	if err != nil {
 		logger.Error("Error fetching paid plugins:", err)
 		return err
 	}
 
 	// Then fetch freemium plugins
-	freemiumPlugins, err := s.fetchPlugins(freemiumPluginsURL)
+	freemiumPlugins, err := s.fetchPlugins("FREEMIUM")
 	if err != nil {
 		logger.Error("Error fetching freemium plugins:", err)
 		return err
