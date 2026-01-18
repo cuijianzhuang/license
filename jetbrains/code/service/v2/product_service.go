@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,11 +10,75 @@ import (
 	"license/jetbrains/code/mapper"
 	"license/logger"
 	"math/rand"
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"golang.org/x/net/proxy"
 )
+
+// getHTTPClient returns an HTTP client with proxy support from config
+// Proxy priority (highest to lowest):
+// 1. ALL_PROXY - SOCKS5 proxy (socks5://, socks4://)
+// 2. HTTPS_PROXY - HTTP proxy for HTTPS requests
+// 3. HTTP_PROXY - HTTP proxy for all requests
+// 4. Direct connection
+func getHTTPClient() *http.Client {
+	cfg := config.GetConfig()
+	transport := &http.Transport{}
+
+	var usingProxy string
+
+	// Check for SOCKS proxy via ALL_PROXY
+	if cfg.ALLProxy != "" && (strings.HasPrefix(strings.ToLower(cfg.ALLProxy), "socks5") ||
+		strings.HasPrefix(strings.ToLower(cfg.ALLProxy), "socks4") ||
+		strings.HasPrefix(strings.ToLower(cfg.ALLProxy), "socks://")) {
+		parsed, err := url.Parse(cfg.ALLProxy)
+		if err == nil {
+			dialer, err := proxy.FromURL(parsed, proxy.Direct)
+			if err == nil {
+				transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+					return dialer.Dial(network, addr)
+				}
+				usingProxy = fmt.Sprintf("SOCKS(%s)", cfg.ALLProxy)
+			}
+		}
+	}
+
+	// For HTTP proxy, set Proxy function explicitly
+	if usingProxy == "" {
+		proxyStr := cfg.HTTPSProxy
+		if proxyStr == "" {
+			proxyStr = cfg.HTTPProxy
+		}
+		if proxyStr != "" {
+			parsed, err := url.Parse(proxyStr)
+			if err == nil {
+				transport.Proxy = http.ProxyURL(parsed)
+				usingProxy = proxyStr
+			}
+		}
+	}
+
+	// Log proxy configuration
+	logger.Info(fmt.Sprintf("Proxy config - HTTP_PROXY: %s, HTTPS_PROXY: %s, ALL_PROXY: %s, Using: %s",
+		getOrNone(cfg.HTTPProxy), getOrNone(cfg.HTTPSProxy), getOrNone(cfg.ALLProxy), getOrNone(usingProxy)))
+
+	return &http.Client{
+		Transport: transport,
+	}
+}
+
+func getOrNone(s string) string {
+	if s == "" {
+		return "(none)"
+	}
+	return s
+}
 
 // ProductService handles product-related operations
 type ProductService struct {
@@ -65,14 +130,14 @@ func (s *ProductService) FetchLatest() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	client := &http.Client{}
+	client := getHTTPClient()
 	req, err := http.NewRequest("GET", "https://data.services.jetbrains.com/products", nil)
 	if err != nil {
 		logger.Error("Error creating request:", err)
 		return err
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+	req.Header.Set("User-Agent", getUserAgent())
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Error("Error executing request:", err)
@@ -215,7 +280,7 @@ func (s *PluginService) GetByCode(code string) (*entity.PluginEntity, error) {
 
 // fetchPlugins fetches plugins from external source with pagination
 func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntity, error) {
-	client := &http.Client{}
+	client := getHTTPClient()
 
 	// Phase 1: Fetch all plugin IDs with pagination
 	type pluginInfo struct {

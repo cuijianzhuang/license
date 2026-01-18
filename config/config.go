@@ -17,6 +17,11 @@ type Config struct {
 	DatabaseDriver string
 	DatabaseDsn    string
 	StartTime      time.Time
+	// Proxy settings
+	HTTPProxy  string
+	HTTPSProxy string
+	ALLProxy   string
+	NoProxy    string
 }
 
 var globalConfig *Config
@@ -49,6 +54,10 @@ func InitConfig() {
 		DatabaseDriver: databaseDriver,
 		DatabaseDsn:    databaseDsn,
 		StartTime:      time.Now(),
+		HTTPProxy:      getEnvStr("HTTP_PROXY", ""),
+		HTTPSProxy:     getEnvStr("HTTPS_PROXY", ""),
+		ALLProxy:       getEnvStr("ALL_PROXY", ""),
+		NoProxy:        getEnvStr("NO_PROXY", ""),
 	}
 }
 
