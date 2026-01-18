@@ -179,10 +179,7 @@ func (s *ProductService) FetchLatest() error {
 	}
 
 	if len(productList) > 0 {
-		if err := s.mapper.Truncate(); err != nil {
-			return err
-		}
-		if err := s.mapper.SaveBatch(productList); err != nil {
+		if err := s.mapper.UpsertBatch(productList); err != nil {
 			return err
 		}
 	}
@@ -464,14 +461,10 @@ func (s *PluginService) FetchLatest() error {
 	// Merge the two results
 	allPlugins := append(paidPlugins, freemiumPlugins...)
 
-	// If the plugin list is not empty, clear the table and batch insert
+	// Upsert plugins (insert new, update existing)
 	if len(allPlugins) > 0 {
-		if err := s.mapper.Truncate(); err != nil {
-			logger.Error("Error truncating plugin table:", err)
-			return err
-		}
-		if err := s.mapper.SaveBatch(allPlugins); err != nil {
-			logger.Error("Error saving plugin batch:", err)
+		if err := s.mapper.UpsertBatch(allPlugins); err != nil {
+			logger.Error("Error upserting plugin batch:", err)
 			return err
 		}
 	}

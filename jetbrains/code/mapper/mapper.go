@@ -4,11 +4,14 @@ import (
 	"license/config"
 	"license/jetbrains/code/entity"
 	"license/logger"
+
+	"gorm.io/gorm/clause"
 )
 
 type ProductMapper interface {
 	Truncate() error
 	SaveBatch(products []*entity.ProductEntity) error
+	UpsertBatch(products []*entity.ProductEntity) error
 	List() ([]entity.ProductEntity, error)
 }
 
@@ -32,6 +35,19 @@ func (m *GormProductMapper) SaveBatch(products []*entity.ProductEntity) error {
 	return nil
 }
 
+// UpsertBatch inserts new products or updates existing ones based on product_code unique index
+func (m *GormProductMapper) UpsertBatch(products []*entity.ProductEntity) error {
+	result := config.DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "product_code"}},
+		DoUpdates: clause.AssignmentColumns([]string{"product_name", "product_detail"}),
+	}).CreateInBatches(products, 100)
+	if result.Error != nil {
+		logger.Error("Failed to upsert products:", result.Error)
+		return result.Error
+	}
+	return nil
+}
+
 func (m *GormProductMapper) List() ([]entity.ProductEntity, error) {
 	var products []entity.ProductEntity
 	result := config.DB.Find(&products)
@@ -45,6 +61,7 @@ func (m *GormProductMapper) List() ([]entity.ProductEntity, error) {
 type PluginMapper interface {
 	Truncate() error
 	SaveBatch(products []*entity.PluginEntity) error
+	UpsertBatch(plugins []*entity.PluginEntity) error
 	List() ([]entity.PluginEntity, error)
 }
 
@@ -63,6 +80,19 @@ func (m *GormPluginMapper) SaveBatch(plugins []*entity.PluginEntity) error {
 	result := config.DB.CreateInBatches(plugins, len(plugins))
 	if result.Error != nil {
 		logger.Error("Failed to save plugins:", result.Error)
+		return result.Error
+	}
+	return nil
+}
+
+// UpsertBatch inserts new plugins or updates existing ones based on plugin_code unique index
+func (m *GormPluginMapper) UpsertBatch(plugins []*entity.PluginEntity) error {
+	result := config.DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "plugin_code"}},
+		DoUpdates: clause.AssignmentColumns([]string{"plugin_id", "plugin_name", "plugin_api_detail"}),
+	}).CreateInBatches(plugins, 100)
+	if result.Error != nil {
+		logger.Error("Failed to upsert plugins:", result.Error)
 		return result.Error
 	}
 	return nil

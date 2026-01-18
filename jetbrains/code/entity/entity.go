@@ -5,7 +5,7 @@ type PluginEntity struct {
 	PluginApiDetail string `gorm:"column:plugin_api_detail"`
 	PluginID        uint64 `gorm:"column:plugin_id"`
 	PluginName      string `gorm:"column:plugin_name"`
-	PluginCode      string `gorm:"column:plugin_code"`
+	PluginCode      string `gorm:"column:plugin_code;uniqueIndex:idx_plugin_code"`
 }
 
 func (PluginEntity) TableName() string {
@@ -15,7 +15,7 @@ func (PluginEntity) TableName() string {
 type ProductEntity struct {
 	ID            uint64 `gorm:"primaryKey;column:id"`
 	ProductName   string `gorm:"column:product_name"`
-	ProductCode   string `gorm:"column:product_code"`
+	ProductCode   string `gorm:"column:product_code;uniqueIndex:idx_product_code"`
 	ProductDetail string `gorm:"column:product_detail"`
 }
 
