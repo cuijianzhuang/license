@@ -53,7 +53,7 @@ func (g *LicenseGenerator) GenerateLicense(req types.GenerateLicenseRequest) (*t
 	}
 
 	// Get product codes
-	codes, err := g.getProductCodes(req.Codes)
+	codes, err := g.getProductCodes(req.ParseCodes())
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	v2 "license/jetbrains/code/service/v2"
 	"net/http"
-	"strings"
 	"time"
 
 	"license/jetbrains/types"
@@ -34,21 +33,23 @@ func NewController() *Controller {
 func (c *Controller) GenerateLicense(ctx *gin.Context) {
 	var req types.GenerateLicenseRequest
 
-	// Try to bind from JSON first, then query parameters
+	// Try to bind from JSON body
 	if err := ctx.ShouldBind(&req); err != nil {
-		// Try query parameters
+		logger.Error("ShouldBind failed, fallback to query parameters: ", err)
+	}
+
+	// Fallback to query parameters for empty fields
+	if req.LicenseeName == "" {
 		req.LicenseeName = ctx.Query("licenseeName")
+	}
+	if req.EffectiveDate == "" {
 		req.EffectiveDate = ctx.Query("effectiveDate")
-
-		// Parse codes from comma-separated string
-		codesStr := ctx.Query("codes")
-		if codesStr != "" {
-			req.Codes = strings.Split(codesStr, ",")
-		}
-
-		// Parse valid days
+	}
+	if req.Codes == "" {
+		req.Codes = ctx.Query("codes")
+	}
+	if req.ValidDays == 0 {
 		if validDaysStr := ctx.Query("validDays"); validDaysStr != "" {
-			// Parse to int, ignore error (will use default)
 			var validDays int
 			if _, err := fmt.Sscanf(validDaysStr, "%d", &validDays); err == nil {
 				req.ValidDays = validDays

@@ -1,6 +1,9 @@
 package types
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // LicensePart represents the license information structure
 type LicensePart struct {
@@ -27,10 +30,30 @@ type Product struct {
 
 // GenerateLicenseRequest represents the API request for license generation
 type GenerateLicenseRequest struct {
-	LicenseeName  string   `json:"licenseeName" form:"licenseeName" binding:"required,min=1"`
-	EffectiveDate string   `json:"effectiveDate" form:"effectiveDate"`
-	Codes         []string `json:"codes" form:"codes"`
-	ValidDays     int      `json:"validDays" form:"validDays"`
+	LicenseeName  string `json:"licenseeName" form:"licenseeName" binding:"required,min=1"`
+	EffectiveDate string `json:"effectiveDate" form:"effectiveDate"`
+	Codes         string `json:"codes" form:"codes"`
+	ValidDays     int    `json:"validDays" form:"validDays"`
+}
+
+// ParseCodes splits Codes by comma, trims whitespace and deduplicates
+func (r *GenerateLicenseRequest) ParseCodes() []string {
+	if r.Codes == "" {
+		return nil
+	}
+	set := make(map[string]struct{})
+	var result []string
+	for _, p := range strings.Split(r.Codes, ",") {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		if _, exists := set[p]; !exists {
+			set[p] = struct{}{}
+			result = append(result, p)
+		}
+	}
+	return result
 }
 
 // GenerateLicenseResponse represents the API response for license generation
