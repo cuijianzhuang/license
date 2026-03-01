@@ -21,7 +21,7 @@ jobs:
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
         with:
-          upstream_sync_repo: nannanStrawberry314/licens
+          upstream_sync_repo: nannanStrawberry314/license
           upstream_sync_branch: feture-go-v2
           target_sync_branch: feture-go-v2
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
