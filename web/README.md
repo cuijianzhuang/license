@@ -70,7 +70,7 @@ src/
 
 ## API代理配置
 
-开发环境下，API 请求会通过 Vite 代理转发到后端服务。代理配置在 `vite.config.ts` 文件中：
+开发环境下，API 请求会通过 Vite 代理转发到后端服务。代理配置在 `vite.config.mts` 文件中：
 
 ```ts
 import { defineConfig, loadEnv } from 'vite';
