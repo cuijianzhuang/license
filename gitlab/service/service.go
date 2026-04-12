@@ -275,13 +275,18 @@ func encryptLicense(data []byte) (string, error) {
 
 	// Encode encrypted data as Base64
 	encryptedDataStr := base64.StdEncoding.EncodeToString(encryptedData)
-	ivStr := base64.StdEncoding.EncodeToString(iv)
+
+	// Encrypt IV with RSA private key (matches gitlab-license gem's Encryptor#encrypt)
+	encryptedIV, err := encryptWithPrivateKey(string(iv))
+	if err != nil {
+		return "", err
+	}
 
 	// Package as JSON format
 	result := map[string]string{
 		"data": encryptedDataStr,
 		"key":  encryptedKey,
-		"iv":   ivStr,
+		"iv":   encryptedIV,
 	}
 	jsonData, err := json.Marshal(result)
 	if err != nil {
