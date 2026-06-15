@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"license/internal/jrebel/api"
-	"license/internal/jrebel/constant"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -278,12 +277,12 @@ func runStressTest(optimizedRouter *gin.Engine) {
 
 // 原始签名函数用于对比测试
 func originalSign(clientRandomness, guid string, offline bool, validFrom, validUntil int64) string {
-	signatureBase := clientRandomness + ";" + constant.ServerRandomness + ";" + guid + ";" + strconv.FormatBool(offline)
+	signatureBase := clientRandomness + ";" + api.ServerRandomness + ";" + guid + ";" + strconv.FormatBool(offline)
 	if offline {
 		signatureBase += ";" + strconv.FormatInt(validFrom, 10) + ";" + strconv.FormatInt(validUntil, 10)
 	}
 
-	block, _ := pem.Decode([]byte(constant.LeasesPrivateKey))
+	block, _ := pem.Decode([]byte(api.LeasesPrivateKey))
 	if block == nil {
 		return ""
 	}

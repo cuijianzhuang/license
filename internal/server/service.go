@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"license/internal/logger"
-	"license/internal/utils/useragent"
+	"license/internal/useragent"
 	"net/http"
 	"strings"
 	"time"

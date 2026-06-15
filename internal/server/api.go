@@ -1,8 +1,8 @@
 package server
 
 import (
+	"license/internal/httpx"
 	"license/internal/sys"
-	v1 "license/internal/v1"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func NewServerController() *Controller {
 
 // GetStatus get api status info
 func (ctrl *Controller) GetStatus(c *gin.Context) {
-	v1.HandleSuccess(c, gin.H{
+	httpx.HandleSuccess(c, gin.H{
 		"status": true,
 	})
 }
@@ -33,7 +33,7 @@ func (ctrl *Controller) GetVersion(c *gin.Context) {
 		needUpdate = compareVersions(currentVersion, latestVersion)
 	}
 
-	v1.HandleSuccess(c, VersionResponse{
+	httpx.HandleSuccess(c, VersionResponse{
 		Version:       currentVersion,
 		Build:         sys.GetBuild(),
 		OsArch:        sys.GetOsArch(),

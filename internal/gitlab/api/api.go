@@ -1,7 +1,7 @@
 package api
 
 import (
-	"license/internal/gitlab/entity"
+	"license/internal/gitlab/types"
 	"license/internal/gitlab/service"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +22,7 @@ func (controller *Controller) Generate(ctx *gin.Context) {
 	Name := ctx.PostForm("Name")
 	Email := ctx.PostForm("Email")
 	Company := ctx.PostForm("Company")
-	var license = entity.LicenseInfo{
+	var license = types.LicenseInfo{
 		Name:    Name,
 		Email:   Email,
 		Company: Company,

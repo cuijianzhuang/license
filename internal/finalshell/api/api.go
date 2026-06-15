@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"license/internal/finalshell/service"
-	v1 "license/internal/v1"
+	"license/internal/httpx"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,13 +33,13 @@ func (controller *Controller) GenerateLicense(c *gin.Context) {
 	machineCode = strings.TrimSpace(machineCode)
 
 	if machineCode == "" {
-		v1.HandleError(c, http.StatusBadRequest, "Machine code cannot be empty")
+		httpx.HandleError(c, http.StatusBadRequest, "Machine code cannot be empty")
 		return
 	}
 
 	// 输入验证 - 提前验证避免不必要的计算
 	if len(machineCode) < 3 || len(machineCode) > 200 {
-		v1.HandleError(c, http.StatusBadRequest, "Invalid machine code format")
+		httpx.HandleError(c, http.StatusBadRequest, "Invalid machine code format")
 		return
 	}
 
@@ -70,7 +70,7 @@ func (controller *Controller) GenerateLicense(c *gin.Context) {
 		c.Header("X-Cache-Size", string(rune(cacheSize)))
 	}
 
-	v1.HandleSuccess(c, licenses)
+	httpx.HandleSuccess(c, licenses)
 }
 
 // GetStats returns performance statistics
@@ -100,7 +100,7 @@ func (controller *Controller) GetStats(c *gin.Context) {
 		"cache_misses":     cacheMisses,
 		"cache_hit_rate_%": hitRate,
 	}
-	v1.HandleSuccess(c, stats)
+	httpx.HandleSuccess(c, stats)
 }
 
 // ClearCache clears the license cache
@@ -113,5 +113,5 @@ func (controller *Controller) ClearCache(c *gin.Context) {
 	atomic.StoreInt64(&controller.cacheHits, 0)
 	atomic.StoreInt64(&controller.cacheMisses, 0)
 
-	v1.HandleSuccess(c, gin.H{"message": "Cache cleared successfully"})
+	httpx.HandleSuccess(c, gin.H{"message": "Cache cleared successfully"})
 }

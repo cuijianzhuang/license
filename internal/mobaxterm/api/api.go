@@ -4,9 +4,9 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
+	"license/internal/httpx"
 	"license/internal/logger"
-	"license/internal/utils/useragent"
-	v1 "license/internal/v1"
+	"license/internal/useragent"
 	"net/http"
 	"regexp"
 	"runtime"
@@ -230,7 +230,7 @@ func (oc *Controller) FetchVersions(c *gin.Context) {
 		atomic.AddInt64(&oc.stats.VersionCacheHits, 1)
 		versions := oc.versionCache.versions
 		oc.versionCache.mutex.RUnlock()
-		v1.HandleSuccess(c, versions)
+		httpx.HandleSuccess(c, versions)
 		return
 	}
 	oc.versionCache.mutex.RUnlock()
@@ -243,7 +243,7 @@ func (oc *Controller) FetchVersions(c *gin.Context) {
 		logger.Error("", fmt.Errorf("failed to fetch versions: %v", err))
 		// 返回默认版本列表
 		defaultVersions := []string{"25.1", "25.0", "24.4", "24.3", "23.6", "23.5", "23.0"}
-		v1.HandleSuccess(c, defaultVersions)
+		httpx.HandleSuccess(c, defaultVersions)
 		return
 	}
 
@@ -253,7 +253,7 @@ func (oc *Controller) FetchVersions(c *gin.Context) {
 	oc.versionCache.lastFetchTime = time.Now()
 	oc.versionCache.mutex.Unlock()
 
-	v1.HandleSuccess(c, versions)
+	httpx.HandleSuccess(c, versions)
 }
 
 // fetchVersionsFromWeb 从网站获取版本信息
@@ -349,12 +349,12 @@ func (oc *Controller) GenerateLicense(c *gin.Context) {
 
 	count, err := strconv.Atoi(countStr)
 	if err != nil {
-		v1.HandleError(c, 400, "Invalid count value")
+		httpx.HandleError(c, 400, "Invalid count value")
 		return
 	}
 
 	if name == "" || version == "" || count <= 0 {
-		v1.HandleError(c, 400, "Invalid parameters")
+		httpx.HandleError(c, 400, "Invalid parameters")
 		return
 	}
 
@@ -383,19 +383,19 @@ func (oc *Controller) GenerateLicense(c *gin.Context) {
 
 	versionArr := strings.Split(version, ".")
 	if len(versionArr) != 2 {
-		v1.HandleError(c, 400, "Invalid version format")
+		httpx.HandleError(c, 400, "Invalid version format")
 		return
 	}
 
 	major, err := strconv.ParseInt(versionArr[0], 10, 64)
 	if err != nil {
-		v1.HandleError(c, 400, "Invalid major version")
+		httpx.HandleError(c, 400, "Invalid major version")
 		return
 	}
 
 	minor, err := strconv.ParseInt(versionArr[1], 10, 64)
 	if err != nil {
-		v1.HandleError(c, 400, "Invalid minor version")
+		httpx.HandleError(c, 400, "Invalid minor version")
 		return
 	}
 
@@ -403,7 +403,7 @@ func (oc *Controller) GenerateLicense(c *gin.Context) {
 	zipData, err := oc.generateOptimizedLicense(1, count, name, major, minor)
 	if err != nil {
 		logger.Error("", fmt.Errorf("failed to generate license: %v", err))
-		v1.HandleError(c, 500, "Failed to generate license")
+		httpx.HandleError(c, 500, "Failed to generate license")
 		return
 	}
 

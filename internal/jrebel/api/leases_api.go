@@ -18,8 +18,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"license/internal/jrebel/constant"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -115,7 +113,7 @@ func NewLeasesController() (*LeasesController, error) {
 
 // initPrivateKey 初始化RSA私钥（一次性解析）
 func (lc *LeasesController) initPrivateKey() error {
-	block, _ := pem.Decode([]byte(constant.LeasesPrivateKey))
+	block, _ := pem.Decode([]byte(LeasesPrivateKey))
 	if block == nil {
 		return fmt.Errorf("failed to decode PEM block containing the private key")
 	}
@@ -222,7 +220,7 @@ func (lc *LeasesController) sign(clientRandomness, guid string, offline bool, va
 	builder.Grow(128)
 	builder.WriteString(clientRandomness)
 	builder.WriteByte(';')
-	builder.WriteString(constant.ServerRandomness)
+	builder.WriteString(ServerRandomness)
 	builder.WriteByte(';')
 	builder.WriteString(guid)
 	builder.WriteByte(';')
@@ -282,17 +280,17 @@ func (lc *LeasesController) LeasesHandler(c *gin.Context) {
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
 	resp := LeasesResponse{
-		ServerVersion:         constant.ServerVersion,
-		ServerProtocolVersion: constant.ServerProtocolVersion,
-		ServerGuid:            constant.ServerGuid,
-		GroupType:             constant.GroupType,
+		ServerVersion:         ServerVersion,
+		ServerProtocolVersion: ServerProtocolVersion,
+		ServerGuid:            ServerGuid,
+		GroupType:             GroupType,
 		ID:                    1,
 		LicenseType:           1,
 		EvaluationLicense:     false,
 		Signature:             signature,
-		ServerRandomness:      constant.ServerRandomness,
-		SeatPoolType:          constant.SeatPoolType,
-		StatusCode:            constant.StatusCode,
+		ServerRandomness:      ServerRandomness,
+		SeatPoolType:          SeatPoolType,
+		StatusCode:            StatusCode,
 		Offline:               offline,
 		ValidFrom:             validFrom,
 		ValidUntil:            validUntil,
@@ -328,14 +326,14 @@ func (lc *LeasesController) Leases1Handler(c *gin.Context) {
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
 	resp := LeasesOneResponse{
-		ServerVersion:         constant.ServerVersion,
-		ServerProtocolVersion: constant.ServerProtocolVersion,
-		ServerGuid:            constant.ServerGuid,
+		ServerVersion:         ServerVersion,
+		ServerProtocolVersion: ServerProtocolVersion,
+		ServerGuid:            ServerGuid,
 		Signature:             signature,
-		ServerRandomness:      constant.ServerRandomness,
+		ServerRandomness:      ServerRandomness,
 		Features:              "{}",
-		GroupType:             constant.GroupType,
-		StatusCode:            constant.StatusCode,
+		GroupType:             GroupType,
+		StatusCode:            StatusCode,
 		Company:               username,
 		Msg:                   "",
 		StatusMessage:         "",
@@ -361,19 +359,19 @@ func (lc *LeasesController) ValidateHandler(c *gin.Context) {
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
 	resp := ValidateResponse{
-		ServerVersion:         constant.ServerVersion,
-		ServerProtocolVersion: constant.ServerProtocolVersion,
-		ServerGuid:            constant.ServerGuid,
+		ServerVersion:         ServerVersion,
+		ServerProtocolVersion: ServerProtocolVersion,
+		ServerGuid:            ServerGuid,
 		Signature:             signature,
-		ServerRandomness:      constant.ServerRandomness,
+		ServerRandomness:      ServerRandomness,
 		Features:              "{}",
-		GroupType:             constant.GroupType,
-		StatusCode:            constant.StatusCode,
-		Company:               constant.Company,
+		GroupType:             GroupType,
+		StatusCode:            StatusCode,
+		Company:               Company,
 		CanGetLease:           true,
 		LicenseType:           "1",
 		EvaluationLicense:     false,
-		SeatPoolType:          constant.SeatPoolType,
+		SeatPoolType:          SeatPoolType,
 	}
 
 	c.JSON(http.StatusOK, resp)

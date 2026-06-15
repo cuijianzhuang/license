@@ -9,7 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"license/internal/jrebel/constant"
+	"license/internal/jrebel/api"
 	"strconv"
 	"strings"
 	"testing"
@@ -18,12 +18,12 @@ import (
 
 // Original sign function (copied from the original code for comparison)
 func originalSign(clientRandomness, guid string, offline bool, validFrom, validUntil int64) string {
-	signatureBase := clientRandomness + ";" + constant.ServerRandomness + ";" + guid + ";" + strconv.FormatBool(offline)
+	signatureBase := clientRandomness + ";" + api.ServerRandomness + ";" + guid + ";" + strconv.FormatBool(offline)
 	if offline {
 		signatureBase += ";" + strconv.FormatInt(validFrom, 10) + ";" + strconv.FormatInt(validUntil, 10)
 	}
 
-	block, _ := pem.Decode([]byte(constant.LeasesPrivateKey))
+	block, _ := pem.Decode([]byte(api.LeasesPrivateKey))
 	if block == nil {
 		return ""
 	}
@@ -62,7 +62,7 @@ func BenchmarkOriginalSign(b *testing.B) {
 // BenchmarkStringBuilding compares string building methods
 func BenchmarkStringBuilding(b *testing.B) {
 	clientRandomness := "test-randomness-12345"
-	serverRandomness := constant.ServerRandomness
+	serverRandomness := api.ServerRandomness
 	guid := "test-guid-12345-67890"
 	offline := true
 	validFrom := int64(1640995200000)

@@ -7,7 +7,7 @@ import (
 
 	"license/internal/jetbrains/types"
 	"license/internal/logger"
-	v1 "license/internal/v1"
+	"license/internal/httpx"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,7 @@ func NewController() *Controller {
 func (c *Controller) GenerateLicense(ctx *gin.Context) {
 	var req types.GenerateLicenseRequest
 	if err := ctx.ShouldBind(&req); err != nil {
-		v1.HandleError(ctx, http.StatusBadRequest, "Invalid request: "+err.Error())
+		httpx.HandleError(ctx, http.StatusBadRequest, "Invalid request: "+err.Error())
 		return
 	}
 
@@ -40,11 +40,11 @@ func (c *Controller) GenerateLicense(ctx *gin.Context) {
 	response, err := c.generator.GenerateLicense(req)
 	if err != nil {
 		logger.Error("Failed to generate license", err)
-		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to generate license")
+		httpx.HandleError(ctx, http.StatusInternalServerError, "Failed to generate license")
 		return
 	}
 
-	v1.HandleSuccess(ctx, response)
+	httpx.HandleSuccess(ctx, response)
 }
 
 // GetPowerConfig returns the power.conf configuration
@@ -58,7 +58,7 @@ func (c *Controller) GetPowerConfig(ctx *gin.Context) {
 		return
 	}
 
-	v1.HandleSuccess(ctx, powerConfig)
+	httpx.HandleSuccess(ctx, powerConfig)
 }
 
 // FetchProductsLatest fetches the latest products
@@ -69,7 +69,7 @@ func (c *Controller) FetchProductsLatest(ctx *gin.Context) {
 		}
 	}()
 
-	v1.HandleSuccess(ctx, gin.H{
+	httpx.HandleSuccess(ctx, gin.H{
 		"message": "Fetching latest products in background",
 		"status":  "processing",
 	})
@@ -83,7 +83,7 @@ func (c *Controller) FetchPluginsLatest(ctx *gin.Context) {
 		}
 	}()
 
-	v1.HandleSuccess(ctx, gin.H{
+	httpx.HandleSuccess(ctx, gin.H{
 		"message": "Fetching latest plugins in background",
 		"status":  "processing",
 	})
@@ -94,10 +94,10 @@ func (c *Controller) GetProducts(ctx *gin.Context) {
 	products, err := service.GetAllProducts()
 	if err != nil {
 		logger.Error("Failed to get products", err)
-		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to get products")
+		httpx.HandleError(ctx, http.StatusInternalServerError, "Failed to get products")
 		return
 	}
-	v1.HandleSuccess(ctx, products)
+	httpx.HandleSuccess(ctx, products)
 }
 
 // GetPlugins returns all available plugins
@@ -105,10 +105,10 @@ func (c *Controller) GetPlugins(ctx *gin.Context) {
 	plugins, err := service.GetAllPlugins()
 	if err != nil {
 		logger.Error("Failed to get plugins", err)
-		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to get plugins")
+		httpx.HandleError(ctx, http.StatusInternalServerError, "Failed to get plugins")
 		return
 	}
-	v1.HandleSuccess(ctx, plugins)
+	httpx.HandleSuccess(ctx, plugins)
 }
 
 // HealthCheck provides a health check endpoint
