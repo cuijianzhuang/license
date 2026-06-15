@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"license/internal/jetbrains/code/entity"
+	"license/internal/jetbrains/types"
 	"license/internal/logger"
 
 	"github.com/glebarez/sqlite"
@@ -43,7 +43,7 @@ func SetupDatabase() {
 	}
 
 	// Auto-migrate database schema
-	err = DB.AutoMigrate(&entity.PluginEntity{}, &entity.ProductEntity{})
+	err = DB.AutoMigrate(&types.Plugin{}, &types.Product{})
 	if err != nil {
 		logger.Error("Failed to migrate database", err)
 		return

@@ -1,7 +1,7 @@
-package vo
+package api
 
-// LeasesHandlerVO represents a data structure to handle various details related to JRebel leases.
-type LeasesHandlerVO struct {
+// LeasesResponse is the JSON body returned for POST /leases.
+type LeasesResponse struct {
 	ServerVersion         string   `json:"serverVersion"`
 	ServerProtocolVersion string   `json:"serverProtocolVersion"`
 	ServerGuid            string   `json:"serverGuid"`
@@ -23,8 +23,8 @@ type LeasesHandlerVO struct {
 	LicenseValidUntil     int64    `json:"licenseValidUntil"`
 }
 
-// LeasesOneHandlerVO represents a data structure to handle specific details related to a single JRebel lease.
-type LeasesOneHandlerVO struct {
+// LeasesOneResponse is the JSON body returned for DELETE /leases/1.
+type LeasesOneResponse struct {
 	ServerVersion         string `json:"serverVersion"`
 	ServerProtocolVersion string `json:"serverProtocolVersion"`
 	ServerGuid            string `json:"serverGuid"`
@@ -38,8 +38,9 @@ type LeasesOneHandlerVO struct {
 	Company               string `json:"company"`
 }
 
-// ValidateHandlerVO represents a data structure to handle the validation details for JRebel licenses.
-type ValidateHandlerVO struct {
+// ValidateResponse is the JSON body returned for POST /validate-connection and
+// /features.
+type ValidateResponse struct {
 	ServerVersion         string `json:"serverVersion"`
 	ServerProtocolVersion string `json:"serverProtocolVersion"`
 	ServerGuid            string `json:"serverGuid"`

@@ -1,6 +1,6 @@
 package entity
 
-// LicenseEnum defines the type of license
+// LicenseEnum is the MobaXterm edition code embedded in the license payload.
 type LicenseEnum int
 
 const (
@@ -9,19 +9,15 @@ const (
 	Personal                            // Personal Edition
 )
 
-// LicenseEnumNames maps LicenseEnum values to descriptive strings
-var LicenseEnumNames = map[LicenseEnum]string{
-	Professional: "Professional Edition",
-	Educational:  "Educational Edition",
-	Personal:     "Personal Edition",
-}
-
-// GetCode returns the integer code of LicenseEnum
-func (le LicenseEnum) GetCode() int {
-	return int(le)
-}
-
-// GetName returns the descriptive name of LicenseEnum
-func (le LicenseEnum) GetName() string {
-	return LicenseEnumNames[le]
+// String returns the human-readable edition name.
+func (le LicenseEnum) String() string {
+	switch le {
+	case Professional:
+		return "Professional Edition"
+	case Educational:
+		return "Educational Edition"
+	case Personal:
+		return "Personal Edition"
+	}
+	return ""
 }

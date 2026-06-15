@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"license/internal/jrebel/constant"
-	"license/internal/jrebel/vo"
+	
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -174,19 +174,19 @@ func (lc *LeasesController) initObjectPools() {
 	// VO对象池
 	lc.leasesHandlerVOPool = sync.Pool{
 		New: func() interface{} {
-			return &vo.LeasesHandlerVO{}
+			return &LeasesResponse{}
 		},
 	}
 
 	lc.leasesOneVOPool = sync.Pool{
 		New: func() interface{} {
-			return &vo.LeasesOneHandlerVO{}
+			return &LeasesOneResponse{}
 		},
 	}
 
 	lc.validateVOPool = sync.Pool{
 		New: func() interface{} {
-			return &vo.ValidateHandlerVO{}
+			return &ValidateResponse{}
 		},
 	}
 }
@@ -363,11 +363,11 @@ func (lc *LeasesController) LeasesHandler(c *gin.Context) {
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
 	// 从对象池获取VO对象
-	leasesHandlerVO := lc.leasesHandlerVOPool.Get().(*vo.LeasesHandlerVO)
+	leasesHandlerVO := lc.leasesHandlerVOPool.Get().(*LeasesResponse)
 	defer lc.leasesHandlerVOPool.Put(leasesHandlerVO)
 
 	// 重置并填充VO
-	*leasesHandlerVO = vo.LeasesHandlerVO{
+	*leasesHandlerVO = LeasesResponse{
 		ServerVersion:         constant.ServerVersion,
 		ServerProtocolVersion: constant.ServerProtocolVersion,
 		ServerGuid:            constant.ServerGuid,
@@ -414,10 +414,10 @@ func (lc *LeasesController) Leases1Handler(c *gin.Context) {
 
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
-	leasesOneVO := lc.leasesOneVOPool.Get().(*vo.LeasesOneHandlerVO)
+	leasesOneVO := lc.leasesOneVOPool.Get().(*LeasesOneResponse)
 	defer lc.leasesOneVOPool.Put(leasesOneVO)
 
-	*leasesOneVO = vo.LeasesOneHandlerVO{
+	*leasesOneVO = LeasesOneResponse{
 		ServerVersion:         constant.ServerVersion,
 		ServerProtocolVersion: constant.ServerProtocolVersion,
 		ServerGuid:            constant.ServerGuid,
@@ -450,10 +450,10 @@ func (lc *LeasesController) ValidateHandler(c *gin.Context) {
 
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
-	validateVO := lc.validateVOPool.Get().(*vo.ValidateHandlerVO)
+	validateVO := lc.validateVOPool.Get().(*ValidateResponse)
 	defer lc.validateVOPool.Put(validateVO)
 
-	*validateVO = vo.ValidateHandlerVO{
+	*validateVO = ValidateResponse{
 		ServerVersion:         constant.ServerVersion,
 		ServerProtocolVersion: constant.ServerProtocolVersion,
 		ServerGuid:            constant.ServerGuid,

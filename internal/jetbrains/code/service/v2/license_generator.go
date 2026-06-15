@@ -179,11 +179,11 @@ func (g *LicenseGenerator) getCodesFromDatabase() []string {
 }
 
 // buildProducts creates product entries
-func (g *LicenseGenerator) buildProducts(codes []string, effectiveDate string) []types.Product {
-	var products []types.Product
+func (g *LicenseGenerator) buildProducts(codes []string, effectiveDate string) []types.LicensedProduct {
+	var products []types.LicensedProduct
 
 	for _, code := range codes {
-		products = append(products, types.Product{
+		products = append(products, types.LicensedProduct{
 			Code:         code,
 			FallbackDate: effectiveDate,
 			PaidUpTo:     effectiveDate,

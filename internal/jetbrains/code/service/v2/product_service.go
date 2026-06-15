@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"license/internal/config"
-	"license/internal/jetbrains/code/entity"
+	"license/internal/jetbrains/types"
 	"license/internal/logger"
 	"math/rand"
 	"net"
@@ -92,8 +92,8 @@ func NewProductService() *ProductService {
 	return &ProductService{}
 }
 
-func listProducts() ([]entity.ProductEntity, error) {
-	var products []entity.ProductEntity
+func listProducts() ([]types.Product, error) {
+	var products []types.Product
 	if err := config.DB.Find(&products).Error; err != nil {
 		logger.Error("Failed to fetch products:", err)
 		return nil, err
@@ -101,7 +101,7 @@ func listProducts() ([]entity.ProductEntity, error) {
 	return products, nil
 }
 
-func upsertProducts(products []*entity.ProductEntity) error {
+func upsertProducts(products []*types.Product) error {
 	err := config.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "product_code"}},
 		DoUpdates: clause.AssignmentColumns([]string{"product_name", "product_detail"}),
@@ -113,7 +113,7 @@ func upsertProducts(products []*entity.ProductEntity) error {
 }
 
 // GetAll retrieves all products
-func (s *ProductService) GetAll() ([]entity.ProductEntity, error) {
+func (s *ProductService) GetAll() ([]types.Product, error) {
 	products, err := listProducts()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -122,7 +122,7 @@ func (s *ProductService) GetAll() ([]entity.ProductEntity, error) {
 }
 
 // GetByCode retrieves a product by its code
-func (s *ProductService) GetByCode(code string) (*entity.ProductEntity, error) {
+func (s *ProductService) GetByCode(code string) (*types.Product, error) {
 	products, err := listProducts()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -166,7 +166,7 @@ func (s *ProductService) FetchLatest() error {
 		return err
 	}
 
-	productList := make([]*entity.ProductEntity, 0, len(products))
+	productList := make([]*types.Product, 0, len(products))
 	for i, product := range products {
 		logger.Info(fmt.Sprintf("Total products to process: %d, currently processing #%d", len(products), i+1))
 
@@ -177,7 +177,7 @@ func (s *ProductService) FetchLatest() error {
 			continue
 		}
 
-		productEntity := &entity.ProductEntity{
+		productEntity := &types.Product{
 			ProductDetail: string(productJSON),
 			ProductCode:   fmt.Sprint(product["code"]),
 			ProductName:   fmt.Sprint(product["name"]),
@@ -205,8 +205,8 @@ func NewPluginService() *PluginService {
 	return &PluginService{}
 }
 
-func listPlugins() ([]entity.PluginEntity, error) {
-	var plugins []entity.PluginEntity
+func listPlugins() ([]types.Plugin, error) {
+	var plugins []types.Plugin
 	if err := config.DB.Find(&plugins).Error; err != nil {
 		logger.Error("Failed to fetch plugins:", err)
 		return nil, err
@@ -214,7 +214,7 @@ func listPlugins() ([]entity.PluginEntity, error) {
 	return plugins, nil
 }
 
-func upsertPlugins(plugins []*entity.PluginEntity) error {
+func upsertPlugins(plugins []*types.Plugin) error {
 	err := config.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "plugin_code"}},
 		DoUpdates: clause.AssignmentColumns([]string{"plugin_id", "plugin_name", "plugin_api_detail"}),
@@ -226,7 +226,7 @@ func upsertPlugins(plugins []*entity.PluginEntity) error {
 }
 
 // GetAll retrieves all plugins
-func (s *PluginService) GetAll() ([]entity.PluginEntity, error) {
+func (s *PluginService) GetAll() ([]types.Plugin, error) {
 	plugins, err := listPlugins()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugins: %w", err)
@@ -258,7 +258,7 @@ func getUserAgent() string {
 }
 
 // GetByCode retrieves a plugin by its code
-func (s *PluginService) GetByCode(code string) (*entity.PluginEntity, error) {
+func (s *PluginService) GetByCode(code string) (*types.Plugin, error) {
 	plugins, err := listPlugins()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugins: %w", err)
@@ -274,7 +274,7 @@ func (s *PluginService) GetByCode(code string) (*entity.PluginEntity, error) {
 }
 
 // fetchPlugins fetches plugins from external source with pagination
-func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntity, error) {
+func (s *PluginService) fetchPlugins(pricingModel string) ([]*types.Plugin, error) {
 	client := getHTTPClient()
 
 	// Phase 1: Fetch all plugin IDs with pagination
@@ -350,7 +350,7 @@ func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntit
 	// Phase 2: Fetch details concurrently using worker pool
 	const maxWorkers = 10
 	pluginCh := make(chan pluginInfo, len(allPluginInfos))
-	resultCh := make(chan *entity.PluginEntity, len(allPluginInfos))
+	resultCh := make(chan *types.Plugin, len(allPluginInfos))
 
 	// Send all plugin infos to workers
 	for _, p := range allPluginInfos {
@@ -409,7 +409,7 @@ func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntit
 					continue
 				}
 
-				resultCh <- &entity.PluginEntity{
+				resultCh <- &types.Plugin{
 					PluginID:        p.ID,
 					PluginName:      detail.Name,
 					PluginCode:      detail.PurchaseInfo.ProductCode,
@@ -429,7 +429,7 @@ func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntit
 	}()
 
 	// Collect results
-	allPlugins := make([]*entity.PluginEntity, 0, len(allPluginInfos))
+	allPlugins := make([]*types.Plugin, 0, len(allPluginInfos))
 	for plugin := range resultCh {
 		allPlugins = append(allPlugins, plugin)
 	}

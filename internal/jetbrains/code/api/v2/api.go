@@ -103,19 +103,7 @@ func (c *Controller) GetProducts(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to get products")
 		return
 	}
-
-	// Convert to response format
-	var response []types.ProductInfo
-	for _, product := range products {
-		response = append(response, types.ProductInfo{
-			ID:     product.ID,
-			Name:   product.ProductName,
-			Code:   product.ProductCode,
-			Detail: product.ProductDetail,
-		})
-	}
-
-	v1.HandleSuccess(ctx, response)
+	v1.HandleSuccess(ctx, products)
 }
 
 // GetPlugins returns all available plugins
@@ -126,20 +114,7 @@ func (c *Controller) GetPlugins(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to get plugins")
 		return
 	}
-
-	// Convert to response format
-	var response []types.PluginInfo
-	for _, plugin := range plugins {
-		response = append(response, types.PluginInfo{
-			ID:       plugin.ID,
-			PluginID: plugin.PluginID,
-			Name:     plugin.PluginName,
-			Code:     plugin.PluginCode,
-			Detail:   plugin.PluginApiDetail,
-		})
-	}
-
-	v1.HandleSuccess(ctx, response)
+	v1.HandleSuccess(ctx, plugins)
 }
 
 // HealthCheck provides a health check endpoint

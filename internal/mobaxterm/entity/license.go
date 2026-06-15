@@ -42,5 +42,5 @@ func (l *License) GetLicenseKey() string {
 	}
 	// Use the same string format that matches the format in Java
 	licenseFormat := "%d#%s|%d%d#%d#%d3%d6%d#%d#%d#%d#"
-	return fmt.Sprintf(licenseFormat, l.LicenseType.GetCode(), l.UserName, l.MajorVersion, l.MinorVersion, l.Count, l.MajorVersion, l.MinorVersion, l.MinorVersion, l.Unknown, game, plugin)
+	return fmt.Sprintf(licenseFormat, int(l.LicenseType), l.UserName, l.MajorVersion, l.MinorVersion, l.Count, l.MajorVersion, l.MinorVersion, l.MinorVersion, l.Unknown, game, plugin)
 }

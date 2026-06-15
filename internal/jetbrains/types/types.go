@@ -7,21 +7,22 @@ import (
 
 // LicensePart represents the license information structure
 type LicensePart struct {
-	LicenseID         string    `json:"licenseId"`
-	LicenseeName      string    `json:"licenseeName"`
-	Products          []Product `json:"products"`
-	AssigneeName      string    `json:"assigneeName"`
-	Metadata          string    `json:"metadata"`
-	Hash              string    `json:"hash"`
-	GracePeriodDays   int       `json:"gracePeriodDays"`
-	AutoProlongated   bool      `json:"autoProlongated"`
-	IsAutoProlongated bool      `json:"isAutoProlongated"`
-	Trial             bool      `json:"trial"`
-	AiAllowed         bool      `json:"aiAllowed"`
+	LicenseID         string            `json:"licenseId"`
+	LicenseeName      string            `json:"licenseeName"`
+	Products          []LicensedProduct `json:"products"`
+	AssigneeName      string            `json:"assigneeName"`
+	Metadata          string            `json:"metadata"`
+	Hash              string            `json:"hash"`
+	GracePeriodDays   int               `json:"gracePeriodDays"`
+	AutoProlongated   bool              `json:"autoProlongated"`
+	IsAutoProlongated bool              `json:"isAutoProlongated"`
+	Trial             bool              `json:"trial"`
+	AiAllowed         bool              `json:"aiAllowed"`
 }
 
-// Product represents a JetBrains product license entry
-type Product struct {
+// LicensedProduct is a single product entry inside a generated license.
+// (Distinct from Product below, which models the products catalog row.)
+type LicensedProduct struct {
 	Code         string `json:"code"`
 	FallbackDate string `json:"fallbackDate"`
 	PaidUpTo     string `json:"paidUpTo"`
@@ -72,21 +73,33 @@ type PowerConfigResponse struct {
 	FullConfig  string `json:"fullConfig"`
 }
 
-// PluginInfo represents plugin information
-type PluginInfo struct {
-	ID       uint64 `json:"id"`
-	PluginID uint64 `json:"pluginId"`
-	Name     string `json:"name"`
-	Code     string `json:"code"`
-	Detail   string `json:"detail,omitempty"`
+// Plugin is the GORM-mapped JetBrains plugin record. The json tags also drive
+// the GET /jetbrains/plugins response shape.
+type Plugin struct {
+	ID              uint64 `gorm:"primaryKey;column:id" json:"id"`
+	PluginID        uint64 `gorm:"column:plugin_id" json:"pluginId"`
+	PluginName      string `gorm:"column:plugin_name" json:"name"`
+	PluginCode      string `gorm:"column:plugin_code;uniqueIndex:idx_plugin_code" json:"code"`
+	PluginApiDetail string `gorm:"column:plugin_api_detail" json:"detail,omitempty"`
 }
 
-// ProductInfo represents product information
-type ProductInfo struct {
-	ID     uint64 `json:"id"`
-	Name   string `json:"name"`
-	Code   string `json:"code"`
-	Detail string `json:"detail,omitempty"`
+// TableName overrides the GORM default so plugins live in sys_jetbrains_paid_plugin.
+func (Plugin) TableName() string {
+	return "sys_jetbrains_paid_plugin"
+}
+
+// Product is the GORM-mapped JetBrains product record. The json tags also drive
+// the GET /jetbrains/products response shape.
+type Product struct {
+	ID            uint64 `gorm:"primaryKey;column:id" json:"id"`
+	ProductName   string `gorm:"column:product_name" json:"name"`
+	ProductCode   string `gorm:"column:product_code;uniqueIndex:idx_product_code" json:"code"`
+	ProductDetail string `gorm:"column:product_detail" json:"detail,omitempty"`
+}
+
+// TableName overrides the GORM default so products live in sys_jetbrains_product.
+func (Product) TableName() string {
+	return "sys_jetbrains_product"
 }
 
 // LicenseConfig represents license generation configuration
