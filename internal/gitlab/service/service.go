@@ -25,68 +25,41 @@ import (
 // License quantity granted by the generated license.
 const licenseQuantity = 1000
 
-// KeyManager manages RSA keys with lazy loading and caching
-type KeyManager struct {
-	privateKey []byte
-	publicKey  []byte
-	once       sync.Once
-	mutex      sync.RWMutex
-	err        error
-}
+// RSA keys are loaded lazily from disk on first use. Both vars are written
+// exactly once inside loadKeys.Do — sync.Once gives us the happens-before
+// guarantee, so no additional mutex is needed.
+var (
+	loadKeys      sync.Once
+	loadKeysErr   error
+	privateKeyPEM []byte
+	publicKeyPEM  []byte
+)
 
-var keyManager = &KeyManager{}
-
-// getKeys returns cached keys with lazy loading
-func (km *KeyManager) getKeys() ([]byte, []byte, error) {
-	km.once.Do(func() {
-		if publicBytes, err := os.ReadFile(config.GetConfig().DataDir + "/.license_encryption_key.pub"); err == nil {
-			km.publicKey = publicBytes
-		} else {
-			km.err = fmt.Errorf("failed to read public key: %v", err)
+func getKeys() ([]byte, []byte, error) {
+	loadKeys.Do(func() {
+		dir := config.GetConfig().DataDir
+		pub, err := os.ReadFile(dir + "/.license_encryption_key.pub")
+		if err != nil {
+			loadKeysErr = fmt.Errorf("failed to read public key: %v", err)
 			return
 		}
-		if privateBytes, err := os.ReadFile(config.GetConfig().DataDir + "/.license_decryption_key.pri"); err == nil {
-			km.privateKey = privateBytes
-		} else {
-			km.err = fmt.Errorf("failed to read private key: %v", err)
+		priv, err := os.ReadFile(dir + "/.license_decryption_key.pri")
+		if err != nil {
+			loadKeysErr = fmt.Errorf("failed to read private key: %v", err)
 			return
 		}
+		publicKeyPEM = pub
+		privateKeyPEM = priv
 	})
-
-	km.mutex.RLock()
-	defer km.mutex.RUnlock()
-	return km.privateKey, km.publicKey, km.err
+	return privateKeyPEM, publicKeyPEM, loadKeysErr
 }
 
-// LoadKeys initializes the key manager (for backward compatibility)
+// LoadKeys eagerly loads the GitLab keypair so missing files surface during
+// startup instead of on the first request.
 func LoadKeys() error {
-	_, _, err := keyManager.getKeys()
+	_, _, err := getKeys()
 	return err
 }
-
-// Buffer pools for efficient memory management
-var (
-	jsonBufferPool = sync.Pool{
-		New: func() interface{} {
-			return bytes.NewBuffer(make([]byte, 0, 4096))
-		},
-	}
-	ioBufferPool = sync.Pool{
-		New: func() interface{} {
-			return make([]byte, 32*1024) // 32KB buffer
-		},
-	}
-	aesKeyPool = sync.Pool{
-		New: func() interface{} {
-			return make([]byte, 16)
-		},
-	}
-	ivPool = sync.Pool{
-		New: func() interface{} {
-			return make([]byte, aes.BlockSize)
-		},
-	}
-)
 
 // newLicenseIdentifiers returns a freshly randomized set of identifiers (restriction id,
 // subscription id/name and per-add-on purchase XIDs) so every generated license carries
@@ -183,13 +156,8 @@ func createLicenseJson(licenseInfo entity.LicenseInfo, expireTime string) ([]byt
 		},
 	}
 
-	buf := jsonBufferPool.Get().(*bytes.Buffer)
-	defer func() {
-		buf.Reset()
-		jsonBufferPool.Put(buf)
-	}()
-
-	encoder := json.NewEncoder(buf)
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
 	// Match Ruby's JSON.dump output: don't escape <, >, & as \u003c, \u003e, \u0026.
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(license); err != nil {
@@ -201,10 +169,7 @@ func createLicenseJson(licenseInfo entity.LicenseInfo, expireTime string) ([]byt
 	if len(data) > 0 && data[len(data)-1] == '\n' {
 		data = data[:len(data)-1]
 	}
-
-	result := make([]byte, len(data))
-	copy(result, data)
-	return result, nil
+	return data, nil
 }
 
 // generateRandomIV generates a random initialization vector (IV)
@@ -229,7 +194,7 @@ func Encrypt(data, key, iv []byte) ([]byte, error) {
 
 // Uses RSA private key to "encrypt" data with cached keys
 func encryptWithPrivateKey(data string) (string, error) {
-	privateKey, _, err := keyManager.getKeys()
+	privateKey, _, err := getKeys()
 	if err != nil {
 		return "", err
 	}
@@ -241,21 +206,15 @@ func encryptWithPrivateKey(data string) (string, error) {
 	return encrypt, nil
 }
 
-// encryptLicense encrypts license data using AES and RSA with pooled resources
+// encryptLicense encrypts license data using AES and RSA.
 func encryptLicense(data []byte) (string, error) {
-	// Get pooled AES key and IV
-	key := aesKeyPool.Get().([]byte)
-	defer aesKeyPool.Put(key)
+	key := make([]byte, 16)
+	iv := make([]byte, aes.BlockSize)
 
-	iv := ivPool.Get().([]byte)
-	defer ivPool.Put(iv)
-
-	// Generate fresh random data
 	if _, err := rand.Read(key); err != nil {
 		log.Printf("Failed to generate AES key: %v", err)
 		return "", err
 	}
-
 	if _, err := rand.Read(iv); err != nil {
 		log.Printf("Failed to generate AES IV: %v", err)
 		return "", err
@@ -351,35 +310,6 @@ func createLicense(ctx *gin.Context, licenseInfo entity.LicenseInfo, expireTime 
 	ctx.Data(http.StatusOK, "application/zip", zipData)
 }
 
-// exportZipStream creates and sends a ZIP file containing the encrypted license and public key file
-// This function is kept for backward compatibility but is no longer used in the optimized flow
-func exportZipStream(ctx *gin.Context, encryptedLicense string) error {
-	// Set response headers for file download
-	ctx.Status(http.StatusOK) // Explicitly set status code to 200 OK
-	ctx.Header("Content-Disposition", "attachment; filename=license.zip")
-	ctx.Header("Content-Type", "application/zip")
-
-	zipWriter := zip.NewWriter(ctx.Writer)
-	defer func(zipWriter *zip.Writer) {
-		err := zipWriter.Close()
-		if err != nil {
-			log.Printf("Failed to close ZIP writer: %v", err)
-		}
-	}(zipWriter)
-
-	// Add public key file to ZIP
-	if err := addFileToZipOptimized(zipWriter, config.GetConfig().DataDir+"/.license_encryption_key.pub", "license/.license_encryption_key.pub"); err != nil {
-		return err
-	}
-
-	// Add encrypted license data to ZIP
-	if err := addLicenseToZip(zipWriter, encryptedLicense, "license/license.gitlab-license"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // addFileToZipOptimized reads a file from the filesystem and adds it to the ZIP with buffered I/O
 func addFileToZipOptimized(zipWriter *zip.Writer, filePath, zipPath string) error {
 	file, err := os.Open(filePath)
@@ -406,11 +336,7 @@ func addFileToZipOptimized(zipWriter *zip.Writer, filePath, zipPath string) erro
 		return err
 	}
 
-	// Use pooled buffer for efficient copying
-	buffer := ioBufferPool.Get().([]byte)
-	defer ioBufferPool.Put(buffer)
-
-	_, err = io.CopyBuffer(zipFile, file, buffer)
+	_, err = io.Copy(zipFile, file)
 	return err
 }
 

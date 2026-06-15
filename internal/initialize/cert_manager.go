@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 )
 
 // CertFile represents a certificate file with its configuration
@@ -15,11 +14,11 @@ type CertFile struct {
 	Perm    os.FileMode
 }
 
-// CertManager manages all certificate files
+// CertManager manages all certificate files. The files map is built once by
+// NewCertManager and never mutated afterwards, so no locking is needed.
 type CertManager struct {
 	dataDir string
 	files   map[string]*CertFile
-	mu      sync.RWMutex
 }
 
 // Certificate path constants
@@ -96,9 +95,6 @@ func (cm *CertManager) initializeCertFiles() {
 
 // GetFilePath returns the full path for a certificate file
 func (cm *CertManager) GetFilePath(certType string) string {
-	cm.mu.RLock()
-	defer cm.mu.RUnlock()
-
 	if cert, ok := cm.files[certType]; ok {
 		return filepath.Join(cm.dataDir, cert.Path)
 	}
@@ -107,10 +103,7 @@ func (cm *CertManager) GetFilePath(certType string) string {
 
 // EnsureFile ensures a certificate file exists with the correct content
 func (cm *CertManager) EnsureFile(certType string) error {
-	cm.mu.RLock()
 	cert, ok := cm.files[certType]
-	cm.mu.RUnlock()
-
 	if !ok {
 		return fmt.Errorf("unknown certificate type: %s", certType)
 	}
@@ -186,10 +179,7 @@ func (cm *CertManager) ReadFile(certType string) ([]byte, error) {
 
 // WriteFile writes content to a certificate file
 func (cm *CertManager) WriteFile(certType string, content []byte) error {
-	cm.mu.RLock()
 	cert, ok := cm.files[certType]
-	cm.mu.RUnlock()
-
 	if !ok {
 		return fmt.Errorf("unknown certificate type: %s", certType)
 	}
@@ -212,13 +202,9 @@ func (cm *CertManager) WriteFile(certType string, content []byte) error {
 
 // GetAllPaths returns all certificate paths for initialization
 func (cm *CertManager) GetAllPaths() map[string]string {
-	cm.mu.RLock()
-	defer cm.mu.RUnlock()
-
 	paths := make(map[string]string)
 	for key, cert := range cm.files {
 		paths[key] = filepath.Join(cm.dataDir, cert.Path)
 	}
-
 	return paths
 }

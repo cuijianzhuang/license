@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"hash"
 	"net/http"
 	"runtime"
 	"sort"
@@ -20,7 +19,6 @@ import (
 	"time"
 
 	"license/internal/jrebel/constant"
-	
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -80,13 +78,6 @@ type LeasesController struct {
 	stats          *PerformanceStats // 性能统计
 	mu             sync.RWMutex      // 读写锁
 
-	// 对象池
-	stringBuilderPool   sync.Pool
-	sha1HasherPool      sync.Pool
-	leasesHandlerVOPool sync.Pool
-	leasesOneVOPool     sync.Pool
-	validateVOPool      sync.Pool
-
 	// 清理任务控制
 	cleanupTicker   *time.Ticker
 	cleanupStopChan chan struct{}
@@ -121,9 +112,6 @@ func NewLeasesController() (*LeasesController, error) {
 			return
 		}
 
-		// 初始化对象池
-		controller.initObjectPools()
-
 		// 启动清理任务
 		controller.startCleanupTask()
 
@@ -151,44 +139,6 @@ func (lc *LeasesController) initPrivateKey() error {
 
 	lc.privateKey = privateKey
 	return nil
-}
-
-// initObjectPools 初始化对象池
-func (lc *LeasesController) initObjectPools() {
-	// 字符串构建器池
-	lc.stringBuilderPool = sync.Pool{
-		New: func() interface{} {
-			builder := &strings.Builder{}
-			builder.Grow(128) // 预分配128字节
-			return builder
-		},
-	}
-
-	// SHA1哈希器池
-	lc.sha1HasherPool = sync.Pool{
-		New: func() interface{} {
-			return sha1.New()
-		},
-	}
-
-	// VO对象池
-	lc.leasesHandlerVOPool = sync.Pool{
-		New: func() interface{} {
-			return &LeasesResponse{}
-		},
-	}
-
-	lc.leasesOneVOPool = sync.Pool{
-		New: func() interface{} {
-			return &LeasesOneResponse{}
-		},
-	}
-
-	lc.validateVOPool = sync.Pool{
-		New: func() interface{} {
-			return &ValidateResponse{}
-		},
-	}
 }
 
 // startCleanupTask 启动定期清理任务
@@ -285,14 +235,8 @@ func (lc *LeasesController) sign(clientRandomness, guid string, offline bool, va
 	// 缓存未命中，计算签名
 	atomic.AddInt64(&lc.stats.CacheMisses, 1)
 
-	// 使用对象池获取字符串构建器
-	builder := lc.stringBuilderPool.Get().(*strings.Builder)
-	defer func() {
-		builder.Reset()
-		lc.stringBuilderPool.Put(builder)
-	}()
-
-	// 高效字符串拼接
+	var builder strings.Builder
+	builder.Grow(128)
 	builder.WriteString(clientRandomness)
 	builder.WriteByte(';')
 	builder.WriteString(constant.ServerRandomness)
@@ -308,16 +252,8 @@ func (lc *LeasesController) sign(clientRandomness, guid string, offline bool, va
 		builder.WriteString(strconv.FormatInt(validUntil, 10))
 	}
 
-	signatureBase := builder.String()
-
-	// 使用对象池获取哈希器
-	hasher := lc.sha1HasherPool.Get().(hash.Hash)
-	defer func() {
-		hasher.Reset()
-		lc.sha1HasherPool.Put(hasher)
-	}()
-
-	hasher.Write([]byte(signatureBase))
+	hasher := sha1.New()
+	hasher.Write([]byte(builder.String()))
 	hashed := hasher.Sum(nil)
 
 	// RSA签名（使用预解析的私钥）
@@ -362,12 +298,7 @@ func (lc *LeasesController) LeasesHandler(c *gin.Context) {
 
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
-	// 从对象池获取VO对象
-	leasesHandlerVO := lc.leasesHandlerVOPool.Get().(*LeasesResponse)
-	defer lc.leasesHandlerVOPool.Put(leasesHandlerVO)
-
-	// 重置并填充VO
-	*leasesHandlerVO = LeasesResponse{
+	resp := LeasesResponse{
 		ServerVersion:         constant.ServerVersion,
 		ServerProtocolVersion: constant.ServerProtocolVersion,
 		ServerGuid:            constant.ServerGuid,
@@ -389,12 +320,11 @@ func (lc *LeasesController) LeasesHandler(c *gin.Context) {
 		LicenseValidUntil:     4102415999000,
 	}
 
-	// 添加性能头
 	c.Header("X-Cache", fmt.Sprintf("hits:%d,misses:%d",
 		atomic.LoadInt64(&lc.stats.CacheHits),
 		atomic.LoadInt64(&lc.stats.CacheMisses)))
 
-	c.JSON(http.StatusOK, leasesHandlerVO)
+	c.JSON(http.StatusOK, resp)
 }
 
 // Leases1Handler handles the "/leases/1" endpoint (优化版).
@@ -414,10 +344,7 @@ func (lc *LeasesController) Leases1Handler(c *gin.Context) {
 
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
-	leasesOneVO := lc.leasesOneVOPool.Get().(*LeasesOneResponse)
-	defer lc.leasesOneVOPool.Put(leasesOneVO)
-
-	*leasesOneVO = LeasesOneResponse{
+	resp := LeasesOneResponse{
 		ServerVersion:         constant.ServerVersion,
 		ServerProtocolVersion: constant.ServerProtocolVersion,
 		ServerGuid:            constant.ServerGuid,
@@ -431,7 +358,7 @@ func (lc *LeasesController) Leases1Handler(c *gin.Context) {
 		StatusMessage:         "",
 	}
 
-	c.JSON(http.StatusOK, leasesOneVO)
+	c.JSON(http.StatusOK, resp)
 }
 
 // ValidateHandler handles the "/validate-connection" endpoint (优化版).
@@ -450,10 +377,7 @@ func (lc *LeasesController) ValidateHandler(c *gin.Context) {
 
 	signature := lc.sign(clientRandomness, guid, offline, validFrom, validUntil)
 
-	validateVO := lc.validateVOPool.Get().(*ValidateResponse)
-	defer lc.validateVOPool.Put(validateVO)
-
-	*validateVO = ValidateResponse{
+	resp := ValidateResponse{
 		ServerVersion:         constant.ServerVersion,
 		ServerProtocolVersion: constant.ServerProtocolVersion,
 		ServerGuid:            constant.ServerGuid,
@@ -469,7 +393,7 @@ func (lc *LeasesController) ValidateHandler(c *gin.Context) {
 		SeatPoolType:          constant.SeatPoolType,
 	}
 
-	c.JSON(http.StatusOK, validateVO)
+	c.JSON(http.StatusOK, resp)
 }
 
 // GetPerformanceStats 获取性能统计信息

@@ -1,17 +1,10 @@
 package logger
 
 import (
-	"sync"
-
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	instance *LogWrapper
-	once     sync.Once
-)
-
-// customFormatter custom log format
+// customFormatter renders logrus entries as "[LEVEL] yyyy/mm/dd - HH:MM:SS msg".
 type customFormatter struct{}
 
 // Format constructs the log output format, ensuring there are no extra prefixes or field names
@@ -20,39 +13,29 @@ func (f *customFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return []byte("[" + entry.Data["level"].(string) + "] " + timestamp + " " + entry.Message + "\n"), nil
 }
 
-// LogWrapper wraps the logrus logger
-type LogWrapper struct {
-	*logrus.Logger
-}
-
-// initLogger creates and initializes the logger instance
-func initLogger() {
-	baseLogger := logrus.New()
-	baseLogger.SetFormatter(new(customFormatter)) // Use custom format
-	instance = &LogWrapper{baseLogger}
-}
-
-// GetInstance returns the singleton logger instance
-func GetInstance() *LogWrapper {
-	once.Do(initLogger)
-	return instance
-}
+// std is the package-level logrus instance shared by all helpers below. It is
+// initialised at package load and never reassigned, so no mutex is needed.
+var std = func() *logrus.Logger {
+	l := logrus.New()
+	l.SetFormatter(new(customFormatter))
+	return l
+}()
 
 // Info logs an INFO level message
 func Info(message string) {
-	GetInstance().Logger.WithField("level", "INFO").Info(message)
+	std.WithField("level", "INFO").Info(message)
 }
 
 // Error logs an ERROR level message with an error object
 func Error(message string, err error) {
 	if err != nil {
-		GetInstance().Logger.WithField("level", "ERROR").Errorf("%s | Error: %v", message, err)
+		std.WithField("level", "ERROR").Errorf("%s | Error: %v", message, err)
 	} else {
-		GetInstance().Logger.WithField("level", "ERROR").Error(message)
+		std.WithField("level", "ERROR").Error(message)
 	}
 }
 
 // Sys logs a SYS level message
 func Sys(message string) {
-	GetInstance().Logger.WithField("level", "SYS").Info(message)
+	std.WithField("level", "SYS").Info(message)
 }
