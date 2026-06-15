@@ -1,13 +1,13 @@
 package jetbrains
 
 import (
-	"license/internal/jetbrains/code/service"
+	"license/internal/jetbrains"
 	"testing"
 )
 
 // Simple test that doesn't require certificate generation
 func TestLicenseGenerator_Creation(t *testing.T) {
-	generator := service.NewLicenseGenerator()
+	generator := jetbrains.NewLicenseGenerator()
 
 	if generator == nil {
 		t.Fatal("Failed to create license generator")
@@ -15,7 +15,7 @@ func TestLicenseGenerator_Creation(t *testing.T) {
 }
 
 func TestGetPowerConfig(t *testing.T) {
-	generator := service.NewLicenseGenerator()
+	generator := jetbrains.NewLicenseGenerator()
 
 	config := generator.GetPowerConfig()
 
@@ -30,7 +30,7 @@ func TestGetPowerConfig(t *testing.T) {
 
 // Benchmark that doesn't require certificates
 func BenchmarkGetPowerConfig(b *testing.B) {
-	generator := service.NewLicenseGenerator()
+	generator := jetbrains.NewLicenseGenerator()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

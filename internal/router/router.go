@@ -1,11 +1,11 @@
 package router
 
 import (
-	finalshell "license/internal/finalshell/api"
-	gitlab "license/internal/gitlab/api"
-	jetbrains "license/internal/jetbrains/code/api"
-	jrebel "license/internal/jrebel/api"
-	mobaxterm "license/internal/mobaxterm/api"
+	"license/internal/finalshell"
+	"license/internal/gitlab"
+	"license/internal/jetbrains"
+	"license/internal/jrebel"
+	"license/internal/mobaxterm"
 	"license/internal/rpc"
 	"license/internal/server"
 

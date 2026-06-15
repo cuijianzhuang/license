@@ -1,7 +1,8 @@
 package initialize
 
 import (
-	"license/internal/jetbrains/util"
+	"license/internal/config"
+	"license/internal/jetbrains"
 	"license/internal/logger"
 )
 
@@ -9,9 +10,16 @@ import (
 func InitJetbrains() error {
 	logger.Info("Initializing JetBrains certificates")
 
-	fakeCert := util.GetFake()
+	if config.DB != nil {
+		if err := jetbrains.AutoMigrate(config.DB); err != nil {
+			logger.Error("Failed to migrate JetBrains schema", err)
+			return err
+		}
+	}
+
+	fakeCert := jetbrains.GetFake()
 	if cm := GetCertManager(); cm != nil {
-		fakeCert.SetPaths(util.PathsFromCertManager(cm))
+		fakeCert.SetPaths(jetbrains.PathsFromCertManager(cm))
 	}
 
 	// Load or generate keys

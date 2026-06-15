@@ -1,26 +1,24 @@
-package api
+package jetbrains
 
 import (
-	"license/internal/jetbrains/code/service"
 	"net/http"
 	"time"
 
-	"license/internal/jetbrains/types"
-	"license/internal/logger"
 	"license/internal/httpx"
+	"license/internal/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Controller handles JetBrains license API endpoints
 type Controller struct {
-	generator *service.LicenseGenerator
+	generator *LicenseGenerator
 }
 
 // NewController creates a new JetBrains controller
 func NewController() *Controller {
 	return &Controller{
-		generator: service.NewLicenseGenerator(),
+		generator: NewLicenseGenerator(),
 	}
 }
 
@@ -29,7 +27,7 @@ func NewController() *Controller {
 // hit the form tags. The required+min=1 binding on LicenseeName covers the
 // empty-name validation, so no manual check is needed.
 func (c *Controller) GenerateLicense(ctx *gin.Context) {
-	var req types.GenerateLicenseRequest
+	var req GenerateLicenseRequest
 	if err := ctx.ShouldBind(&req); err != nil {
 		httpx.HandleError(ctx, http.StatusBadRequest, "Invalid request: "+err.Error())
 		return
@@ -64,7 +62,7 @@ func (c *Controller) GetPowerConfig(ctx *gin.Context) {
 // FetchProductsLatest fetches the latest products
 func (c *Controller) FetchProductsLatest(ctx *gin.Context) {
 	go func() {
-		if err := service.FetchLatestProducts(); err != nil {
+		if err := FetchLatestProducts(); err != nil {
 			logger.Error("Failed to fetch latest products", err)
 		}
 	}()
@@ -78,7 +76,7 @@ func (c *Controller) FetchProductsLatest(ctx *gin.Context) {
 // FetchPluginsLatest fetches the latest plugins
 func (c *Controller) FetchPluginsLatest(ctx *gin.Context) {
 	go func() {
-		if err := service.FetchLatestPlugins(); err != nil {
+		if err := FetchLatestPlugins(); err != nil {
 			logger.Error("Failed to fetch latest plugins", err)
 		}
 	}()
@@ -91,7 +89,7 @@ func (c *Controller) FetchPluginsLatest(ctx *gin.Context) {
 
 // GetProducts returns all available products
 func (c *Controller) GetProducts(ctx *gin.Context) {
-	products, err := service.GetAllProducts()
+	products, err := GetAllProducts()
 	if err != nil {
 		logger.Error("Failed to get products", err)
 		httpx.HandleError(ctx, http.StatusInternalServerError, "Failed to get products")
@@ -102,7 +100,7 @@ func (c *Controller) GetProducts(ctx *gin.Context) {
 
 // GetPlugins returns all available plugins
 func (c *Controller) GetPlugins(ctx *gin.Context) {
-	plugins, err := service.GetAllPlugins()
+	plugins, err := GetAllPlugins()
 	if err != nil {
 		logger.Error("Failed to get plugins", err)
 		httpx.HandleError(ctx, http.StatusInternalServerError, "Failed to get plugins")
@@ -122,13 +120,13 @@ func (c *Controller) HealthCheck(ctx *gin.Context) {
 
 // ServerController handles JetBrains server API endpoints
 type ServerController struct {
-	generator *service.LicenseGenerator
+	generator *LicenseGenerator
 }
 
 // NewServerController creates a new server controller
 func NewServerController() *ServerController {
 	return &ServerController{
-		generator: service.NewLicenseGenerator(),
+		generator: NewLicenseGenerator(),
 	}
 }
 

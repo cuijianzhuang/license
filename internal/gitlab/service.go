@@ -1,4 +1,4 @@
-package service
+package gitlab
 
 import (
 	"archive/zip"
@@ -11,7 +11,6 @@ import (
 	"io"
 	"license/internal/config"
 	"license/internal/crypto"
-	"license/internal/gitlab/types"
 	"log"
 	"net/http"
 	"os"
@@ -63,7 +62,7 @@ func LoadKeys() error {
 
 // newLicenseIdentifiers returns a freshly randomized set of identifiers (restriction id,
 // subscription id/name and per-add-on purchase XIDs) so every generated license carries
-// a unique idtypes. A single rand.Read call backs all values.
+// a unique identity. A single rand.Read call backs all values.
 func newLicenseIdentifiers() (restrictionID, subID, subName, duoXID, dapXID string, err error) {
 	var buf [40]byte
 	if _, err = rand.Read(buf[:]); err != nil {
@@ -81,7 +80,7 @@ func newLicenseIdentifiers() (restrictionID, subID, subName, duoXID, dapXID stri
 // The payload follows GitLab's cloud / offline-cloud licensing schema (GitLab 17+):
 // it carries activation timestamps, subscription metadata and add_on_products instead of
 // the legacy top-level features whitelist.
-func createLicenseJson(licenseInfo types.LicenseInfo, expireTime string) ([]byte, error) {
+func createLicenseJson(licenseInfo LicenseInfo, expireTime string) ([]byte, error) {
 
 	var expirationDate time.Time
 	var err error
@@ -106,34 +105,34 @@ func createLicenseJson(licenseInfo types.LicenseInfo, expireTime string) ([]byte
 	// activated_at is conventionally the day after issuance, normalized to 00:00 UTC.
 	activatedAt := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, time.UTC)
 
-	addOnProducts := map[string][]types.AddOnPurchase{
+	addOnProducts := map[string][]AddOnPurchase{
 		"duo_enterprise": {{
 			Quantity:    licenseQuantity,
-			StartedOn:   types.CustomTime{Time: now},
-			ExpiresOn:   types.CustomTime{Time: expirationDate},
+			StartedOn:   CustomTime{Time: now},
+			ExpiresOn:   CustomTime{Time: expirationDate},
 			PurchaseXID: duoXID,
 		}},
 		"self_hosted_dap": {{
 			Quantity:    1,
-			StartedOn:   types.CustomTime{Time: now},
-			ExpiresOn:   types.CustomTime{Time: expirationDate},
+			StartedOn:   CustomTime{Time: now},
+			ExpiresOn:   CustomTime{Time: expirationDate},
 			PurchaseXID: dapXID,
 		}},
 	}
 
-	license := types.License{
+	license := License{
 		Version: 1,
 		License: licenseInfo,
 
-		IssuedAt:       types.CustomTime{Time: now},
-		ExpiresAt:      types.CustomTime{Time: expirationDate},
-		NotifyAdminsAt: types.CustomTime{Time: expirationDate.AddDate(0, 0, -30)},
-		NotifyUsersAt:  types.CustomTime{Time: expirationDate.AddDate(0, 0, -7)},
-		BlockChangesAt: types.CustomTime{Time: expirationDate.AddDate(0, 0, 180)},
+		IssuedAt:       CustomTime{Time: now},
+		ExpiresAt:      CustomTime{Time: expirationDate},
+		NotifyAdminsAt: CustomTime{Time: expirationDate.AddDate(0, 0, -30)},
+		NotifyUsersAt:  CustomTime{Time: expirationDate.AddDate(0, 0, -7)},
+		BlockChangesAt: CustomTime{Time: expirationDate.AddDate(0, 0, 180)},
 
-		ActivatedAt:  types.CustomDateTime{Time: activatedAt},
-		LastSyncedAt: types.CustomDateTime{Time: activatedAt},
-		NextSyncAt:   types.CustomDateTime{Time: activatedAt.AddDate(0, 0, 90)},
+		ActivatedAt:  CustomDateTime{Time: activatedAt},
+		LastSyncedAt: CustomDateTime{Time: activatedAt},
+		NextSyncAt:   CustomDateTime{Time: activatedAt.AddDate(0, 0, 90)},
 
 		CloudLicensingEnabled:        true,
 		OfflineCloudLicensingEnabled: true,
@@ -145,7 +144,7 @@ func createLicenseJson(licenseInfo types.LicenseInfo, expireTime string) ([]byte
 		TemporaryExtension:           false,
 		ContractOveragesAllowed:      true,
 
-		Restrictions: types.Restriction{
+		Restrictions: Restriction{
 			ID:                      restrictionID,
 			Plan:                    "ultimate",
 			ActiveUserCount:         licenseQuantity,
@@ -254,14 +253,14 @@ func encryptLicense(data []byte) (string, error) {
 }
 
 // Generate generates a license and sends it via HTTP response
-func Generate(ctx *gin.Context, licenseInfo types.LicenseInfo, expireTime string) {
+func Generate(ctx *gin.Context, licenseInfo LicenseInfo, expireTime string) {
 	createLicense(ctx, licenseInfo, expireTime)
 }
 
 // createLicense creates and sends a license. Responses are intentionally not cached:
 // the payload carries a freshly randomized subscription_id / subscription_name on every
 // call, so each download must be regenerated end-to-end.
-func createLicense(ctx *gin.Context, licenseInfo types.LicenseInfo, expireTime string) {
+func createLicense(ctx *gin.Context, licenseInfo LicenseInfo, expireTime string) {
 	// Create license JSON data
 	licenseJson, err := createLicenseJson(licenseInfo, expireTime)
 	if err != nil {

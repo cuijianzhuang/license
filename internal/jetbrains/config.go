@@ -1,12 +1,11 @@
-package config
+package jetbrains
 
 import (
-	"license/internal/jetbrains/types"
 	"time"
 )
 
 // DefaultLicenseConfig provides default configuration for license generation
-var DefaultLicenseConfig = types.LicenseConfig{
+var DefaultLicenseConfig = LicenseConfig{
 	DefaultValidDays:   1095, // 3 years
 	DefaultGracePeriod: 7,
 	DefaultMetadata:    "0120231110PSAA003008",

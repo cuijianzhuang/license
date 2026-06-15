@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"license/internal/mobaxterm/api"
+	"license/internal/mobaxterm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	// 创建控制器（现在已合并优化功能）
-	controller := api.NewMobaXtermController()
+	controller := mobaxterm.NewMobaXtermController()
 
 	// 创建路由
 	router := setupRouter(controller)
@@ -33,7 +33,7 @@ func main() {
 	runBenchmarkTests(router)
 }
 
-func setupRouter(controller *api.Controller) *gin.Engine {
+func setupRouter(controller *mobaxterm.Controller) *gin.Engine {
 	r := gin.New()
 	// 应用限流中间件
 	r.Use(controller.RateLimitMiddleware())

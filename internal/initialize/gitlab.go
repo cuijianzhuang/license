@@ -1,9 +1,9 @@
 package initialize
 
 import (
-	"license/internal/gitlab/service"
+	"license/internal/gitlab"
 )
 
 func InitGitLabCert() error {
-	return service.LoadKeys()
+	return gitlab.LoadKeys()
 }

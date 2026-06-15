@@ -1,4 +1,4 @@
-package api
+package jrebel
 
 // LeasesResponse is the JSON body returned for POST /leases.
 type LeasesResponse struct {

@@ -1,4 +1,4 @@
-package api
+package finalshell
 
 import (
 	"net/http"
@@ -6,7 +6,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"license/internal/finalshell/service"
 	"license/internal/httpx"
 
 	"github.com/gin-gonic/gin"
@@ -44,10 +43,10 @@ func (controller *Controller) GenerateLicense(c *gin.Context) {
 	}
 
 	// 检查是否来自缓存
-	cacheSize := service.GetCacheStats()
+	cacheSize := GetCacheStats()
 	isCached := cacheSize > 0
 
-	licenses := service.GenerateLicense(machineCode)
+	licenses := GenerateLicense(machineCode)
 
 	// 添加缓存头
 	c.Header("Cache-Control", "public, max-age=1800") // 30分钟
@@ -79,7 +78,7 @@ func (controller *Controller) GetStats(c *gin.Context) {
 	totalTime := atomic.LoadInt64(&controller.totalTime)
 	cacheHits := atomic.LoadInt64(&controller.cacheHits)
 	cacheMisses := atomic.LoadInt64(&controller.cacheMisses)
-	cacheSize := service.GetCacheStats()
+	cacheSize := GetCacheStats()
 
 	var avgTime int64
 	if requestCount > 0 {
@@ -105,7 +104,7 @@ func (controller *Controller) GetStats(c *gin.Context) {
 
 // ClearCache clears the license cache
 func (controller *Controller) ClearCache(c *gin.Context) {
-	service.ClearCache()
+	ClearCache()
 
 	// Reset stats
 	atomic.StoreInt64(&controller.requestCount, 0)

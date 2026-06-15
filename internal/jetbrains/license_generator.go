@@ -1,4 +1,4 @@
-package service
+package jetbrains
 
 import (
 	"crypto"
@@ -9,9 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"license/internal/config"
-	jetbrainsConfig "license/internal/jetbrains/config"
-	"license/internal/jetbrains/types"
-	"license/internal/jetbrains/util"
 	"license/internal/logger"
 	"math/big"
 	"sync"
@@ -20,7 +17,7 @@ import (
 
 // LicenseGenerator handles license generation
 type LicenseGenerator struct {
-	fakeCert *util.FakeCert
+	fakeCert *FakeCert
 	mu       sync.RWMutex
 	cache    map[string]*cachedLicense
 }
@@ -35,13 +32,13 @@ type cachedLicense struct {
 // NewLicenseGenerator creates a new license generator
 func NewLicenseGenerator() *LicenseGenerator {
 	return &LicenseGenerator{
-		fakeCert: util.GetFake(),
+		fakeCert: GetFake(),
 		cache:    make(map[string]*cachedLicense),
 	}
 }
 
 // GenerateLicense generates a JetBrains license
-func (g *LicenseGenerator) GenerateLicense(req types.GenerateLicenseRequest) (*types.GenerateLicenseResponse, error) {
+func (g *LicenseGenerator) GenerateLicense(req GenerateLicenseRequest) (*GenerateLicenseResponse, error) {
 	// Validate request
 	if req.LicenseeName == "" {
 		return nil, fmt.Errorf("license name is required")
@@ -50,7 +47,7 @@ func (g *LicenseGenerator) GenerateLicense(req types.GenerateLicenseRequest) (*t
 	// Calculate effective date
 	effectiveDate := req.EffectiveDate
 	if effectiveDate == "" {
-		effectiveDate = jetbrainsConfig.CalculateEffectiveDate(req.ValidDays)
+		effectiveDate = CalculateEffectiveDate(req.ValidDays)
 	}
 
 	// Get product codes
@@ -81,18 +78,18 @@ func (g *LicenseGenerator) GenerateLicense(req types.GenerateLicenseRequest) (*t
 	products := g.buildProducts(codes, effectiveDate)
 
 	// Create license part
-	licensePart := types.LicensePart{
+	licensePart := LicensePart{
 		LicenseID:         licenseID,
 		LicenseeName:      req.LicenseeName,
 		Products:          products,
 		AssigneeName:      "",
-		Metadata:          jetbrainsConfig.DefaultLicenseConfig.DefaultMetadata,
-		Hash:              jetbrainsConfig.DefaultLicenseConfig.DefaultHash,
-		GracePeriodDays:   jetbrainsConfig.DefaultLicenseConfig.DefaultGracePeriod,
+		Metadata:          DefaultLicenseConfig.DefaultMetadata,
+		Hash:              DefaultLicenseConfig.DefaultHash,
+		GracePeriodDays:   DefaultLicenseConfig.DefaultGracePeriod,
 		AutoProlongated:   true,
 		IsAutoProlongated: true,
-		Trial:             jetbrainsConfig.DefaultLicenseConfig.EnableTrial,
-		AiAllowed:         jetbrainsConfig.DefaultLicenseConfig.EnableAI,
+		Trial:             DefaultLicenseConfig.EnableTrial,
+		AiAllowed:         DefaultLicenseConfig.EnableAI,
 	}
 
 	// Generate activation code
@@ -114,8 +111,8 @@ func (g *LicenseGenerator) getProductCodes(requestedCodes []string) ([]string, e
 	var validCodes []string
 	dbCodes := g.getCodesFromDatabase()
 	validCodes = append(validCodes, dbCodes...)
-	validCodes = append(validCodes, jetbrainsConfig.DefaultProductCodes()...)
-	validCodes = jetbrainsConfig.MergeProductCodes(validCodes)
+	validCodes = append(validCodes, DefaultProductCodes()...)
+	validCodes = MergeProductCodes(validCodes)
 
 	// If no requested codes, return all valid codes
 	if len(requestedCodes) == 0 {
@@ -177,11 +174,11 @@ func (g *LicenseGenerator) getCodesFromDatabase() []string {
 }
 
 // buildProducts creates product entries
-func (g *LicenseGenerator) buildProducts(codes []string, effectiveDate string) []types.LicensedProduct {
-	var products []types.LicensedProduct
+func (g *LicenseGenerator) buildProducts(codes []string, effectiveDate string) []LicensedProduct {
+	var products []LicensedProduct
 
 	for _, code := range codes {
-		products = append(products, types.LicensedProduct{
+		products = append(products, LicensedProduct{
 			Code:         code,
 			FallbackDate: effectiveDate,
 			PaidUpTo:     effectiveDate,
@@ -193,7 +190,7 @@ func (g *LicenseGenerator) buildProducts(codes []string, effectiveDate string) [
 }
 
 // generateActivationCode creates the final activation code
-func (g *LicenseGenerator) generateActivationCode(licensePart types.LicensePart) (string, error) {
+func (g *LicenseGenerator) generateActivationCode(licensePart LicensePart) (string, error) {
 	// Marshal license part to JSON
 	licenseJSON, err := json.Marshal(licensePart)
 	if err != nil {
@@ -260,11 +257,11 @@ func (g *LicenseGenerator) generateLicenseID() (string, error) {
 }
 
 // buildResponse creates the API response
-func (g *LicenseGenerator) buildResponse(activationCode, licenseID, expiresAt string) *types.GenerateLicenseResponse {
+func (g *LicenseGenerator) buildResponse(activationCode, licenseID, expiresAt string) *GenerateLicenseResponse {
 	// Generate power config
 	powerConfig := g.generatePowerConfig()
 
-	return &types.GenerateLicenseResponse{
+	return &GenerateLicenseResponse{
 		ActivationCode: activationCode,
 		PowerConfig:    powerConfig,
 		LicenseID:      licenseID,
@@ -279,27 +276,27 @@ func (g *LicenseGenerator) generatePowerConfig() string {
 		return ""
 	}
 
-	codePower := util.GeneratePowerResult(g.fakeCert.CodeCert, g.fakeCert.CodeRootCert)
+	codePower := GeneratePowerResult(g.fakeCert.CodeCert, g.fakeCert.CodeRootCert)
 
 	return fmt.Sprintf("[Result]\n; Lemon active by code\n%s", codePower)
 }
 
 // GetPowerConfig returns the full power configuration
-func (g *LicenseGenerator) GetPowerConfig() types.PowerConfigResponse {
+func (g *LicenseGenerator) GetPowerConfig() PowerConfigResponse {
 	var codePower, serverPower string
 
 	if g.fakeCert.CodeCert != nil && g.fakeCert.CodeRootCert != nil {
-		codePower = util.GeneratePowerResult(g.fakeCert.CodeCert, g.fakeCert.CodeRootCert)
+		codePower = GeneratePowerResult(g.fakeCert.CodeCert, g.fakeCert.CodeRootCert)
 	}
 
 	if g.fakeCert.ServerCert != nil && g.fakeCert.ServerRootCert != nil {
-		serverPower = util.GeneratePowerResult(g.fakeCert.ServerCert, g.fakeCert.ServerRootCert)
+		serverPower = GeneratePowerResult(g.fakeCert.ServerCert, g.fakeCert.ServerRootCert)
 	}
 
 	fullConfig := fmt.Sprintf("[Result]\n; Lemon active by code\n%s\n[Result]\n; Lemon active by server\n%s",
 		codePower, serverPower)
 
-	return types.PowerConfigResponse{
+	return PowerConfigResponse{
 		CodePower:   codePower,
 		ServerPower: serverPower,
 		FullConfig:  fullConfig,

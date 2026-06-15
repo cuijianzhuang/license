@@ -1,8 +1,10 @@
-package types
+package jetbrains
 
 import (
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // LicensePart represents the license information structure
@@ -71,6 +73,11 @@ type PowerConfigResponse struct {
 	CodePower   string `json:"codePower"`
 	ServerPower string `json:"serverPower"`
 	FullConfig  string `json:"fullConfig"`
+}
+
+// AutoMigrate creates or updates the JetBrains-owned tables.
+func AutoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(&Plugin{}, &Product{})
 }
 
 // Plugin is the GORM-mapped JetBrains plugin record. The json tags also drive

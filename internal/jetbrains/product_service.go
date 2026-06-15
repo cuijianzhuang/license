@@ -1,4 +1,4 @@
-package service
+package jetbrains
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"license/internal/config"
-	"license/internal/jetbrains/types"
 	"license/internal/logger"
 	"math/rand"
 	"net"
@@ -87,8 +86,8 @@ func getOrNone(s string) string {
 // FetchLatestProducts held the write lock for the duration of a multi-minute
 // HTTP scrape.
 
-func listProducts() ([]types.Product, error) {
-	var products []types.Product
+func listProducts() ([]Product, error) {
+	var products []Product
 	if err := config.DB.Find(&products).Error; err != nil {
 		logger.Error("Failed to fetch products:", err)
 		return nil, err
@@ -96,7 +95,7 @@ func listProducts() ([]types.Product, error) {
 	return products, nil
 }
 
-func upsertProducts(products []*types.Product) error {
+func upsertProducts(products []*Product) error {
 	err := config.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "product_code"}},
 		DoUpdates: clause.AssignmentColumns([]string{"product_name", "product_detail"}),
@@ -108,7 +107,7 @@ func upsertProducts(products []*types.Product) error {
 }
 
 // GetAllProducts retrieves all products from the database.
-func GetAllProducts() ([]types.Product, error) {
+func GetAllProducts() ([]Product, error) {
 	products, err := listProducts()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -117,7 +116,7 @@ func GetAllProducts() ([]types.Product, error) {
 }
 
 // GetProductByCode retrieves a product by its code.
-func GetProductByCode(code string) (*types.Product, error) {
+func GetProductByCode(code string) (*Product, error) {
 	products, err := listProducts()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -161,7 +160,7 @@ func FetchLatestProducts() error {
 		return err
 	}
 
-	productList := make([]*types.Product, 0, len(products))
+	productList := make([]*Product, 0, len(products))
 	for i, product := range products {
 		logger.Info(fmt.Sprintf("Total products to process: %d, currently processing #%d", len(products), i+1))
 
@@ -172,7 +171,7 @@ func FetchLatestProducts() error {
 			continue
 		}
 
-		productEntity := &types.Product{
+		productEntity := &Product{
 			ProductDetail: string(productJSON),
 			ProductCode:   fmt.Sprint(product["code"]),
 			ProductName:   fmt.Sprint(product["name"]),
@@ -194,8 +193,8 @@ func FetchLatestProducts() error {
 // Plugin operations. See the comment above the product funcs for why no lock
 // is held.
 
-func listPlugins() ([]types.Plugin, error) {
-	var plugins []types.Plugin
+func listPlugins() ([]Plugin, error) {
+	var plugins []Plugin
 	if err := config.DB.Find(&plugins).Error; err != nil {
 		logger.Error("Failed to fetch plugins:", err)
 		return nil, err
@@ -203,7 +202,7 @@ func listPlugins() ([]types.Plugin, error) {
 	return plugins, nil
 }
 
-func upsertPlugins(plugins []*types.Plugin) error {
+func upsertPlugins(plugins []*Plugin) error {
 	err := config.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "plugin_code"}},
 		DoUpdates: clause.AssignmentColumns([]string{"plugin_id", "plugin_name", "plugin_api_detail"}),
@@ -215,7 +214,7 @@ func upsertPlugins(plugins []*types.Plugin) error {
 }
 
 // GetAllPlugins retrieves all plugins from the database.
-func GetAllPlugins() ([]types.Plugin, error) {
+func GetAllPlugins() ([]Plugin, error) {
 	plugins, err := listPlugins()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugins: %w", err)
@@ -247,7 +246,7 @@ func getUserAgent() string {
 }
 
 // GetPluginByCode retrieves a plugin by its code.
-func GetPluginByCode(code string) (*types.Plugin, error) {
+func GetPluginByCode(code string) (*Plugin, error) {
 	plugins, err := listPlugins()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugins: %w", err)
@@ -263,7 +262,7 @@ func GetPluginByCode(code string) (*types.Plugin, error) {
 }
 
 // fetchPlugins fetches plugins from external source with pagination
-func fetchPlugins(pricingModel string) ([]*types.Plugin, error) {
+func fetchPlugins(pricingModel string) ([]*Plugin, error) {
 	client := getHTTPClient()
 
 	// Phase 1: Fetch all plugin IDs with pagination
@@ -339,7 +338,7 @@ func fetchPlugins(pricingModel string) ([]*types.Plugin, error) {
 	// Phase 2: Fetch details concurrently using worker pool
 	const maxWorkers = 10
 	pluginCh := make(chan pluginInfo, len(allPluginInfos))
-	resultCh := make(chan *types.Plugin, len(allPluginInfos))
+	resultCh := make(chan *Plugin, len(allPluginInfos))
 
 	// Send all plugin infos to workers
 	for _, p := range allPluginInfos {
@@ -398,7 +397,7 @@ func fetchPlugins(pricingModel string) ([]*types.Plugin, error) {
 					continue
 				}
 
-				resultCh <- &types.Plugin{
+				resultCh <- &Plugin{
 					PluginID:        p.ID,
 					PluginName:      detail.Name,
 					PluginCode:      detail.PurchaseInfo.ProductCode,
@@ -418,7 +417,7 @@ func fetchPlugins(pricingModel string) ([]*types.Plugin, error) {
 	}()
 
 	// Collect results
-	allPlugins := make([]*types.Plugin, 0, len(allPluginInfos))
+	allPlugins := make([]*Plugin, 0, len(allPluginInfos))
 	for plugin := range resultCh {
 		allPlugins = append(allPlugins, plugin)
 	}

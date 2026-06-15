@@ -1,4 +1,4 @@
-package api
+package jrebel
 
 import (
 	"fmt"

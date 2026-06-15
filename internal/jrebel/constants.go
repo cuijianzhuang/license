@@ -1,4 +1,4 @@
-package api
+package jrebel
 
 // ServerVersion defines the current version of the server.
 const ServerVersion = "3.2.4"

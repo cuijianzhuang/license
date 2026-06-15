@@ -11,7 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"license/internal/jrebel/api"
+	"license/internal/jrebel"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -30,10 +30,10 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	// 创建原始控制器
-	originalController := api.NewLeasesController()
+	originalController := jrebel.NewLeasesController()
 
 	// 创建优化控制器
-	optimizedController, err := api.NewOptimizedLeasesController()
+	optimizedController, err := jrebel.NewOptimizedLeasesController()
 	if err != nil {
 		fmt.Printf("Failed to create optimized controller: %v\n", err)
 		return
@@ -48,7 +48,7 @@ func main() {
 	runBenchmarkTests(originalRouter, optimizedRouter)
 }
 
-func setupOriginalRouter(controller *api.LeasesController) *gin.Engine {
+func setupOriginalRouter(controller *jrebel.LeasesController) *gin.Engine {
 	r := gin.New()
 	r.POST("/jrebel/leases", controller.LeasesHandler)
 	r.DELETE("/jrebel/leases/1", controller.Leases1Handler)
@@ -56,7 +56,7 @@ func setupOriginalRouter(controller *api.LeasesController) *gin.Engine {
 	return r
 }
 
-func setupOptimizedRouter(controller *api.OptimizedLeasesController) *gin.Engine {
+func setupOptimizedRouter(controller *jrebel.OptimizedLeasesController) *gin.Engine {
 	r := gin.New()
 	r.POST("/jrebel/leases", controller.OptimizedLeasesHandler)
 	r.DELETE("/jrebel/leases/1", controller.OptimizedLeases1Handler)
@@ -277,12 +277,12 @@ func runStressTest(optimizedRouter *gin.Engine) {
 
 // 原始签名函数用于对比测试
 func originalSign(clientRandomness, guid string, offline bool, validFrom, validUntil int64) string {
-	signatureBase := clientRandomness + ";" + api.ServerRandomness + ";" + guid + ";" + strconv.FormatBool(offline)
+	signatureBase := clientRandomness + ";" + jrebel.ServerRandomness + ";" + guid + ";" + strconv.FormatBool(offline)
 	if offline {
 		signatureBase += ";" + strconv.FormatInt(validFrom, 10) + ";" + strconv.FormatInt(validUntil, 10)
 	}
 
-	block, _ := pem.Decode([]byte(api.LeasesPrivateKey))
+	block, _ := pem.Decode([]byte(jrebel.LeasesPrivateKey))
 	if block == nil {
 		return ""
 	}

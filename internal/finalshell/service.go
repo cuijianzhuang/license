@@ -1,7 +1,4 @@
-// Package service generates FinalShell license codes for a given machine
-// fingerprint. Computation is cheap (a few small hashes), but we still cache
-// results so repeated requests for the same machineCode skip the work.
-package service
+package finalshell
 
 import (
 	"encoding/hex"

@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	"license/internal/jrebel/api"
+	"license/internal/jrebel"
 	"time"
 )
 
@@ -13,7 +13,7 @@ func main() {
 	fmt.Println("========================")
 
 	// 创建优化版控制器
-	optimizedController, err := api.NewOptimizedLeasesController()
+	optimizedController, err := jrebel.NewOptimizedLeasesController()
 	if err != nil {
 		fmt.Printf("Failed to create optimized controller: %v\n", err)
 		return
@@ -26,7 +26,7 @@ func main() {
 	testSigningPerformance(optimizedController)
 }
 
-func testSigningPerformance(controller *api.OptimizedLeasesController) {
+func testSigningPerformance(controller *jrebel.OptimizedLeasesController) {
 	fmt.Println("\n=== 签名性能测试 ===")
 	
 	// 测试参数

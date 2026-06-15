@@ -1,9 +1,6 @@
-package api
+package gitlab
 
 import (
-	"license/internal/gitlab/types"
-	"license/internal/gitlab/service"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +19,7 @@ func (controller *Controller) Generate(ctx *gin.Context) {
 	Name := ctx.PostForm("Name")
 	Email := ctx.PostForm("Email")
 	Company := ctx.PostForm("Company")
-	var license = types.LicenseInfo{
+	var license = LicenseInfo{
 		Name:    Name,
 		Email:   Email,
 		Company: Company,
@@ -30,5 +27,5 @@ func (controller *Controller) Generate(ctx *gin.Context) {
 	// Expiration time
 	expireTime := ctx.PostForm("ExpireTime")
 	// Generate license
-	service.Generate(ctx, license, expireTime)
+	Generate(ctx, license, expireTime)
 }
