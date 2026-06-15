@@ -9,31 +9,11 @@ import (
 )
 
 type ProductMapper interface {
-	Truncate() error
-	SaveBatch(products []*entity.ProductEntity) error
 	UpsertBatch(products []*entity.ProductEntity) error
 	List() ([]entity.ProductEntity, error)
 }
 
 type GormProductMapper struct{}
-
-func (m *GormProductMapper) Truncate() error {
-	result := config.DB.Exec("DELETE FROM sys_jetbrains_product")
-	if result.Error != nil {
-		logger.Error("Failed to truncate product table:", result.Error)
-		return result.Error
-	}
-	return nil
-}
-
-func (m *GormProductMapper) SaveBatch(products []*entity.ProductEntity) error {
-	result := config.DB.CreateInBatches(products, len(products))
-	if result.Error != nil {
-		logger.Error("Failed to save products:", result.Error)
-		return result.Error
-	}
-	return nil
-}
 
 // UpsertBatch inserts new products or updates existing ones based on product_code unique index
 func (m *GormProductMapper) UpsertBatch(products []*entity.ProductEntity) error {
@@ -59,31 +39,11 @@ func (m *GormProductMapper) List() ([]entity.ProductEntity, error) {
 }
 
 type PluginMapper interface {
-	Truncate() error
-	SaveBatch(products []*entity.PluginEntity) error
 	UpsertBatch(plugins []*entity.PluginEntity) error
 	List() ([]entity.PluginEntity, error)
 }
 
 type GormPluginMapper struct{}
-
-func (m *GormPluginMapper) Truncate() error {
-	result := config.DB.Exec("DELETE FROM sys_jetbrains_paid_plugin")
-	if result.Error != nil {
-		logger.Error("Failed to truncate plugin table:", result.Error)
-		return result.Error
-	}
-	return nil
-}
-
-func (m *GormPluginMapper) SaveBatch(plugins []*entity.PluginEntity) error {
-	result := config.DB.CreateInBatches(plugins, len(plugins))
-	if result.Error != nil {
-		logger.Error("Failed to save plugins:", result.Error)
-		return result.Error
-	}
-	return nil
-}
 
 // UpsertBatch inserts new plugins or updates existing ones based on plugin_code unique index
 func (m *GormPluginMapper) UpsertBatch(plugins []*entity.PluginEntity) error {

@@ -98,10 +98,3 @@ type LicenseConfig struct {
 	EnableAI           bool
 	EnableTrial        bool
 }
-
-// CertificateInfo represents certificate information
-type CertificateInfo struct {
-	CodeCert   string `json:"codeCert"`
-	ServerCert string `json:"serverCert"`
-	ValidUntil string `json:"validUntil"`
-}

@@ -80,10 +80,14 @@ func getOrNone(s string) string {
 	return s
 }
 
-// ProductService handles product-related operations
+// ProductService handles product-related operations.
+//
+// The service is stateless: the underlying mapper is backed by GORM, which is
+// safe for concurrent use, so no lock is needed. An earlier RWMutex here caused
+// all reads to block while FetchLatest held the write lock for the duration of
+// a multi-minute HTTP scrape.
 type ProductService struct {
 	mapper mapper.ProductMapper
-	mu     sync.RWMutex
 }
 
 // NewProductService creates a new product service
@@ -95,9 +99,6 @@ func NewProductService() *ProductService {
 
 // GetAll retrieves all products
 func (s *ProductService) GetAll() ([]entity.ProductEntity, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	products, err := s.mapper.List()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -108,9 +109,6 @@ func (s *ProductService) GetAll() ([]entity.ProductEntity, error) {
 
 // GetByCode retrieves a product by its code
 func (s *ProductService) GetByCode(code string) (*entity.ProductEntity, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	products, err := s.mapper.List()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -127,9 +125,6 @@ func (s *ProductService) GetByCode(code string) (*entity.ProductEntity, error) {
 
 // FetchLatest fetches the latest products from external source
 func (s *ProductService) FetchLatest() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	client := getHTTPClient()
 	req, err := http.NewRequest("GET", "https://data.services.jetbrains.com/products", nil)
 	if err != nil {
@@ -187,30 +182,10 @@ func (s *ProductService) FetchLatest() error {
 	return nil
 }
 
-// SaveProducts saves multiple products to database
-func (s *ProductService) SaveProducts(products []entity.ProductEntity) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	db := config.DB
-	if db == nil {
-		return fmt.Errorf("database not initialized")
-	}
-
-	for _, product := range products {
-		if err := db.Save(&product).Error; err != nil {
-			logger.Error("Failed to save product: ", err)
-			continue
-		}
-	}
-
-	return nil
-}
-
-// PluginService handles plugin-related operations
+// PluginService handles plugin-related operations.
+// See ProductService for why no lock is held.
 type PluginService struct {
 	mapper mapper.PluginMapper
-	mu     sync.RWMutex
 }
 
 // NewPluginService creates a new plugin service
@@ -222,9 +197,6 @@ func NewPluginService() *PluginService {
 
 // GetAll retrieves all plugins
 func (s *PluginService) GetAll() ([]entity.PluginEntity, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	plugins, err := s.mapper.List()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugins: %w", err)
@@ -258,9 +230,6 @@ func getUserAgent() string {
 
 // GetByCode retrieves a plugin by its code
 func (s *PluginService) GetByCode(code string) (*entity.PluginEntity, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	plugins, err := s.mapper.List()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugins: %w", err)
@@ -441,9 +410,6 @@ func (s *PluginService) fetchPlugins(pricingModel string) ([]*entity.PluginEntit
 
 // FetchLatest fetches the latest plugins from external source
 func (s *PluginService) FetchLatest() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	// First fetch paid plugins
 	paidPlugins, err := s.fetchPlugins("PAID")
 	if err != nil {
@@ -472,22 +438,3 @@ func (s *PluginService) FetchLatest() error {
 	return nil
 }
 
-// SavePlugins saves multiple plugins to database
-func (s *PluginService) SavePlugins(plugins []entity.PluginEntity) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	db := config.DB
-	if db == nil {
-		return fmt.Errorf("database not initialized")
-	}
-
-	for _, plugin := range plugins {
-		if err := db.Save(&plugin).Error; err != nil {
-			logger.Error("Failed to save plugin: ", err)
-			continue
-		}
-	}
-
-	return nil
-}
