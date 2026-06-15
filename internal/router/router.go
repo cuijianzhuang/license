@@ -3,7 +3,7 @@ package router
 import (
 	finalshell "license/internal/finalshell/api"
 	gitlab "license/internal/gitlab/api"
-	jetbrainServer "license/internal/jetbrains/code/api/v2"
+	jetbrains "license/internal/jetbrains/code/api"
 	jrebel "license/internal/jrebel/api"
 	mobaxterm "license/internal/mobaxterm/api"
 	"license/internal/rpc"
@@ -108,8 +108,8 @@ func SetupRouter(r *gin.RouterGroup) {
 	}
 
 	// jetbrains
-	jetbrainsServerApi := jetbrainServer.NewServerController()
-	jetbrainsCodeApi := jetbrainServer.NewController()
+	jetbrainsServerApi := jetbrains.NewServerController()
+	jetbrainsCodeApi := jetbrains.NewController()
 
 	jetbrainsGroup := r.Group("/jetbrains")
 	{

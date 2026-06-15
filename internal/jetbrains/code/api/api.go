@@ -1,7 +1,7 @@
-package v2
+package api
 
 import (
-	v2 "license/internal/jetbrains/code/service/v2"
+	"license/internal/jetbrains/code/service"
 	"net/http"
 	"time"
 
@@ -14,13 +14,13 @@ import (
 
 // Controller handles JetBrains license API endpoints
 type Controller struct {
-	generator *v2.LicenseGenerator
+	generator *service.LicenseGenerator
 }
 
 // NewController creates a new JetBrains controller
 func NewController() *Controller {
 	return &Controller{
-		generator: v2.NewLicenseGenerator(),
+		generator: service.NewLicenseGenerator(),
 	}
 }
 
@@ -64,7 +64,7 @@ func (c *Controller) GetPowerConfig(ctx *gin.Context) {
 // FetchProductsLatest fetches the latest products
 func (c *Controller) FetchProductsLatest(ctx *gin.Context) {
 	go func() {
-		if err := v2.FetchLatestProducts(); err != nil {
+		if err := service.FetchLatestProducts(); err != nil {
 			logger.Error("Failed to fetch latest products", err)
 		}
 	}()
@@ -78,7 +78,7 @@ func (c *Controller) FetchProductsLatest(ctx *gin.Context) {
 // FetchPluginsLatest fetches the latest plugins
 func (c *Controller) FetchPluginsLatest(ctx *gin.Context) {
 	go func() {
-		if err := v2.FetchLatestPlugins(); err != nil {
+		if err := service.FetchLatestPlugins(); err != nil {
 			logger.Error("Failed to fetch latest plugins", err)
 		}
 	}()
@@ -91,7 +91,7 @@ func (c *Controller) FetchPluginsLatest(ctx *gin.Context) {
 
 // GetProducts returns all available products
 func (c *Controller) GetProducts(ctx *gin.Context) {
-	products, err := v2.GetAllProducts()
+	products, err := service.GetAllProducts()
 	if err != nil {
 		logger.Error("Failed to get products", err)
 		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to get products")
@@ -102,7 +102,7 @@ func (c *Controller) GetProducts(ctx *gin.Context) {
 
 // GetPlugins returns all available plugins
 func (c *Controller) GetPlugins(ctx *gin.Context) {
-	plugins, err := v2.GetAllPlugins()
+	plugins, err := service.GetAllPlugins()
 	if err != nil {
 		logger.Error("Failed to get plugins", err)
 		v1.HandleError(ctx, http.StatusInternalServerError, "Failed to get plugins")
@@ -122,13 +122,13 @@ func (c *Controller) HealthCheck(ctx *gin.Context) {
 
 // ServerController handles JetBrains server API endpoints
 type ServerController struct {
-	generator *v2.LicenseGenerator
+	generator *service.LicenseGenerator
 }
 
 // NewServerController creates a new server controller
 func NewServerController() *ServerController {
 	return &ServerController{
-		generator: v2.NewLicenseGenerator(),
+		generator: service.NewLicenseGenerator(),
 	}
 }
 

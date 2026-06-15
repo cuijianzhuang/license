@@ -7,7 +7,7 @@
 package rpc
 
 import (
-	"license/internal/jetbrains/server/protocol"
+	jbserver "license/internal/jetbrains/server"
 	"license/internal/jetbrains/util"
 
 	"github.com/gin-gonic/gin"
@@ -64,19 +64,19 @@ func (c *Controller) ReleaseTicket(ctx *gin.Context) {
 }
 
 func jetbrainsPing(ctx *gin.Context, machineID, salt string) {
-	req := &protocol.BaseRequest{Salt: salt, MachineId: machineID}
-	ctx.Render(200, protocol.NewXMLTicket(protocol.NewPingResponse(req, util.GetFake())))
+	req := &jbserver.BaseRequest{Salt: salt, MachineId: machineID}
+	ctx.Render(200, jbserver.NewXMLTicket(jbserver.NewPingResponse(req, util.GetFake())))
 }
 
 func jetbrainsObtainTicket(ctx *gin.Context, username, hostName, machineID, salt string) {
 	if username == "" {
 		username = hostName
 	}
-	req := &protocol.BaseRequest{Salt: salt, UserName: username, MachineId: machineID}
-	ctx.Render(200, protocol.NewXMLTicket(protocol.NewObtainTicketResponse(req, util.GetFake())))
+	req := &jbserver.BaseRequest{Salt: salt, UserName: username, MachineId: machineID}
+	ctx.Render(200, jbserver.NewXMLTicket(jbserver.NewObtainTicketResponse(req, util.GetFake())))
 }
 
 func jetbrainsReleaseTicket(ctx *gin.Context, machineID, salt string) {
-	req := &protocol.BaseRequest{Salt: salt, MachineId: machineID}
-	ctx.Render(200, protocol.NewXMLTicket(protocol.NewReleaseTicketResponse(req, util.GetFake())))
+	req := &jbserver.BaseRequest{Salt: salt, MachineId: machineID}
+	ctx.Render(200, jbserver.NewXMLTicket(jbserver.NewReleaseTicketResponse(req, util.GetFake())))
 }
