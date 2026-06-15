@@ -177,6 +177,7 @@ func (c *FakeCert) LoadOrGenerate() error {
 		if err = os.WriteFile(PublicKeyPath, publicKeyPEM, 0600); err != nil {
 			return fmt.Errorf("failed to write public key: %w", err)
 		}
+		c.PublicKey = &c.PrivateKey.PublicKey
 	} else {
 		pub, err := x509.ParsePKIXPublicKey(pemFile)
 		if err != nil {

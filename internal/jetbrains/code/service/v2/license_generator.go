@@ -27,6 +27,7 @@ type LicenseGenerator struct {
 
 // cachedLicense represents a cached license
 type cachedLicense struct {
+	licenseID string
 	license   string
 	timestamp time.Time
 }
@@ -61,17 +62,19 @@ func (g *LicenseGenerator) GenerateLicense(req types.GenerateLicenseRequest) (*t
 		return nil, fmt.Errorf("no product codes available")
 	}
 
+	// Check cache before generating a license ID — the cached entry holds the
+	// licenseID embedded in the activation code, and the response must reuse it
+	// so the LicenseID field matches the ID inside ActivationCode.
+	cacheKey := fmt.Sprintf("%s:%s:%v", req.LicenseeName, effectiveDate, codes)
+	if cached := g.getFromCache(cacheKey); cached != nil {
+		logger.Info("Using cached license for: " + req.LicenseeName)
+		return g.buildResponse(cached.license, cached.licenseID, effectiveDate), nil
+	}
+
 	// Generate license ID
 	licenseID, err := g.generateLicenseID()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate license ID: %w", err)
-	}
-
-	// Check cache
-	cacheKey := fmt.Sprintf("%s:%s:%v", req.LicenseeName, effectiveDate, codes)
-	if cached := g.getFromCache(cacheKey); cached != "" {
-		logger.Info("Using cached license for: " + req.LicenseeName)
-		return g.buildResponse(cached, licenseID, effectiveDate), nil
 	}
 
 	// Build products list
@@ -99,7 +102,7 @@ func (g *LicenseGenerator) GenerateLicense(req types.GenerateLicenseRequest) (*t
 	}
 
 	// Cache the result
-	g.saveToCache(cacheKey, activationCode)
+	g.saveToCache(cacheKey, licenseID, activationCode)
 
 	// Build response
 	return g.buildResponse(activationCode, licenseID, effectiveDate), nil
@@ -307,24 +310,25 @@ func (g *LicenseGenerator) GetPowerConfig() types.PowerConfigResponse {
 
 // Cache management methods
 
-func (g *LicenseGenerator) getFromCache(key string) string {
+func (g *LicenseGenerator) getFromCache(key string) *cachedLicense {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	if entry, ok := g.cache[key]; ok {
 		// Cache expires after 1 hour
 		if time.Since(entry.timestamp) < time.Hour {
-			return entry.license
+			return entry
 		}
 	}
-	return ""
+	return nil
 }
 
-func (g *LicenseGenerator) saveToCache(key, license string) {
+func (g *LicenseGenerator) saveToCache(key, licenseID, license string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	g.cache[key] = &cachedLicense{
+		licenseID: licenseID,
 		license:   license,
 		timestamp: time.Now(),
 	}

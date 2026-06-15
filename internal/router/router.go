@@ -113,8 +113,7 @@ func SetupRouter(r *gin.RouterGroup) {
 
 	jetbrainsGroup := r.Group("/jetbrains")
 	{
-		// License generation
-		jetbrainsGroup.GET("/generate", jetbrainsCodeApi.GenerateLicense)
+		// License generation — POST only to keep licenseeName out of URL/access logs
 		jetbrainsGroup.POST("/generate", jetbrainsCodeApi.GenerateLicense)
 
 		// Power config
