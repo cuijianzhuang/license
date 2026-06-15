@@ -114,7 +114,7 @@ func (g *LicenseGenerator) getProductCodes(requestedCodes []string) ([]string, e
 	var validCodes []string
 	dbCodes := g.getCodesFromDatabase()
 	validCodes = append(validCodes, dbCodes...)
-	validCodes = append(validCodes, jetbrainsConfig.DefaultProductCodes...)
+	validCodes = append(validCodes, jetbrainsConfig.DefaultProductCodes()...)
 	validCodes = jetbrainsConfig.MergeProductCodes(validCodes)
 
 	// If no requested codes, return all valid codes

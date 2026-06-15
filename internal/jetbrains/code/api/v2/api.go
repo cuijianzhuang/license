@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"fmt"
 	v2 "license/internal/jetbrains/code/service/v2"
 	"net/http"
 	"time"
@@ -29,44 +28,19 @@ func NewController() *Controller {
 	}
 }
 
-// GenerateLicense handles license generation requests
+// GenerateLicense handles license generation requests. ShouldBind dispatches
+// on Content-Type: application/json hits the json tags, form-encoded bodies
+// hit the form tags. The required+min=1 binding on LicenseeName covers the
+// empty-name validation, so no manual check is needed.
 func (c *Controller) GenerateLicense(ctx *gin.Context) {
 	var req types.GenerateLicenseRequest
-
-	// Try to bind from JSON body
 	if err := ctx.ShouldBind(&req); err != nil {
-		logger.Error("ShouldBind failed, fallback to query parameters: ", err)
-	}
-
-	// Fallback to query parameters for empty fields
-	if req.LicenseeName == "" {
-		req.LicenseeName = ctx.Query("licenseeName")
-	}
-	if req.EffectiveDate == "" {
-		req.EffectiveDate = ctx.Query("effectiveDate")
-	}
-	if req.Codes == "" {
-		req.Codes = ctx.Query("codes")
-	}
-	if req.ValidDays == 0 {
-		if validDaysStr := ctx.Query("validDays"); validDaysStr != "" {
-			var validDays int
-			if _, err := fmt.Sscanf(validDaysStr, "%d", &validDays); err == nil {
-				req.ValidDays = validDays
-			}
-		}
-	}
-
-	// Validate required fields
-	if req.LicenseeName == "" {
-		v1.HandleError(ctx, http.StatusBadRequest, "License name is required")
+		v1.HandleError(ctx, http.StatusBadRequest, "Invalid request: "+err.Error())
 		return
 	}
 
-	// Log request
 	logger.Info("Generating JetBrains license for: " + req.LicenseeName)
 
-	// Generate license
 	response, err := c.generator.GenerateLicense(req)
 	if err != nil {
 		logger.Error("Failed to generate license", err)
